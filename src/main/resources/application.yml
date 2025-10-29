@@ -1,0 +1,108 @@
+# ========================================
+# MAIN APPLICATION CONFIGURATION
+# ========================================
+# Single entry point - imports all configs based on active profile
+
+spring:
+  application:
+    name: ${APP_NAME:Spring Boot JWT API}  # Application name
+
+  # Active Profile - Change this to switch environments
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}  # Active Spring profile (default: dev)
+
+  # Import configurations based on active profile
+  config:
+    import:
+      # Common configurations (always loaded)
+      - optional:classpath:config/common/redis.yml  # Import common Redis config
+      - optional:classpath:config/common/kafka.yml  # Import common Kafka config
+      - optional:classpath:config/common/quartz.yml  # Import common Quartz config
+      - optional:classpath:config/common/flyway.yml  # Import common Flyway config
+
+      # Environment-specific configurations (loaded based on active profile)
+      - optional:classpath:config/${spring.profiles.active}/application.yml  # Import environment-specific application config
+      - optional:classpath:config/${spring.profiles.active}/redis.yml  # Import environment-specific Redis config
+      - optional:classpath:config/${spring.profiles.active}/kafka.yml  # Import environment-specific Kafka config
+      - optional:classpath:config/${spring.profiles.active}/quartz.yml  # Import environment-specific Quartz config
+
+  # Jackson Configuration
+  jackson:
+    time-zone: ${app.timezone}  # Set Jackson time zone
+
+  # MVC Configuration
+  mvc:
+    timezone: ${app.timezone}  # Set MVC time zone
+
+  # Internationalization (i18n)
+  messages:
+    basename: i18n/messages  # Message resource basename
+    encoding: UTF-8  # Message resource encoding
+    fallback-to-system-locale: false  # Do not fallback to system locale
+
+  servlet:
+    multipart:
+      enabled: true  # Enable multipart file uploads
+      max-file-size: ${MAX_FILE_SIZE:10MB}  # Maximum file size for uploads
+      max-request-size: ${MAX_REQUEST_SIZE:10MB}  # Maximum request size for uploads
+
+  datasource:
+    # HikariCP Connection Pool Configuration (recommended for production)
+    hikari:
+      minimum-idle: ${DB_MIN_IDLE:10}  # Minimum number of idle connections in the pool
+      maximum-pool-size: ${DB_MAX_POOL_SIZE:50}  # Maximum number of connections in the pool
+      idle-timeout: ${DB_IDLE_TIMEOUT:600000}  # Max time (ms) a connection can remain idle in the pool (default: 10 min)
+      max-lifetime: ${DB_MAX_LIFETIME:1800000}  # Max lifetime (ms) of a connection in the pool (default: 30 min)
+      connection-timeout: ${DB_CONNECTION_TIMEOUT:30000}  # Max time (ms) to wait for a connection from the pool (default: 30 sec)
+      leak-detection-threshold: ${DB_LEAK_DETECTION:60000}  # Time (ms) to detect connection leaks (default: 1 min)
+      validation-timeout: ${DB_VALIDATION_TIMEOUT:5000}  # Timeout (ms) for validating a connection (default: 5 sec)
+      pool-name: ${DB_POOL_NAME:HikariPool}  # Name of the connection pool
+      connection-test-query: SELECT 1  # Query to test connection validity
+
+# ========================================
+# APPLICATION CORE SETTINGS
+# ========================================
+app:
+  timezone: UTC  # Application timezone (UTC only)
+
+  # JWT Configuration
+  jwtSecret: ${JWT_SECRET:3cfa76ef14937c1c0ea519f8fc057a80fcd04a7420f8e8bcd0a7567c272e007b}  # Secret key for JWT signing
+  jwtExpirationMs: ${JWT_EXPIRATION_MS:86400000}  # JWT expiration time in milliseconds
+  jwtRefreshExpirationMs: ${JWT_REFRESH_EXPIRATION_MS:604800000}  # JWT refresh token expiration in milliseconds
+
+  # Enable/Disable components (set to false to disable)
+  redis:
+    enabled: ${REDIS_ENABLED:true}  # Enable Redis integration (true/false)
+  kafka:
+    enabled: ${KAFKA_ENABLED:true}  # Enable Kafka integration (true/false)
+  quartz:
+    enabled: ${QUARTZ_ENABLED:true}  # Enable Quartz scheduler (true/false)
+
+# ========================================
+# SPRING COMMON SETTINGS
+# ========================================
+# (Add any shared Spring settings here)
+
+# ========================================
+# FILE UPLOAD CONFIGURATION
+# ========================================
+file:
+  upload:
+    dir: ${FILE_UPLOAD_DIR:uploads}  # Directory for file uploads
+    max-size: ${FILE_MAX_SIZE:10485760}  # Maximum upload file size in bytes (default: 10MB)
+    allowed-types: ${FILE_ALLOWED_TYPES:jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx,txt,zip}  # Allowed file types for upload
+
+# ========================================
+# ACTUATOR CONFIGURATION
+# ========================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: ${ACTUATOR_ENDPOINTS:health,info,metrics}  # Actuator endpoints to expose
+  endpoint:
+    health:
+      show-details: ${ACTUATOR_HEALTH_DETAILS:when-authorized}  # Health endpoint detail level
+  info:
+    env:
+      enabled: true  # Show environment info in actuator /info

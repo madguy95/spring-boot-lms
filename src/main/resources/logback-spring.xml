@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- Property for log pattern with correlation ID -->
+    <property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd'T'HH:mm:ss.SSS'Z', UTC} [%thread] %-5level %logger{36} [ReqId:%X{correlationId:-NO_ID}] [User:%X{userId:-system}] [%X{requestMethod} %X{requestUri}] - %msg%n"/>
+
+    <!-- ========================================
+         Console Appender - Show ALL logs
+         ======================================== -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- ========================================
+         Application Log File - All system logs
+         ======================================== -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/spring-jwt.log</file>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/archived/spring-jwt.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>10GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- Async Appender for better performance -->
+    <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="FILE"/>
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <includeCallerData>false</includeCallerData>
+    </appender>
+
+    <!-- ========================================
+         Root Logger
+         ======================================== -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="ASYNC"/>
+    </root>
+
+    <!-- ========================================
+         Application Package Loggers
+         ======================================== -->
+    <logger name="com.springjwt" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="ASYNC"/>
+    </logger>
+
+    <logger name="com.springjwt.core.logging" level="DEBUG"/>
+    <logger name="org.springframework.security" level="INFO"/>
+    <logger name="org.hibernate.SQL" level="DEBUG"/>
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
+
+    <!-- ========================================
+         Quartz Scheduler Loggers
+         additivity=true: Log to console + spring-jwt.log + quartz-detail.log
+         ======================================== -->
+
+    <!-- ========================================
+         Quartz Scheduler Detailed Log
+         ======================================== -->
+    <appender name="QUARTZ_DETAIL" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/quartz/quartz-detail.log</file>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSS'Z', UTC} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/quartz/archived/quartz-detail.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>5GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- Quartz Application Code -->
+    <logger name="com.springjwt.module.scheduler" level="INFO" additivity="true">
+        <appender-ref ref="QUARTZ_DETAIL"/>
+    </logger>
+
+    <logger name="com.springjwt.core.quartz" level="INFO" additivity="true">
+        <appender-ref ref="QUARTZ_DETAIL"/>
+    </logger>
+
+    <!-- Quartz Framework -->
+    <logger name="org.quartz" level="INFO" additivity="true">
+        <appender-ref ref="QUARTZ_DETAIL"/>
+    </logger>
+
+    <!-- Quartz Core - More detailed -->
+    <logger name="org.quartz.core" level="DEBUG" additivity="true">
+        <appender-ref ref="QUARTZ_DETAIL"/>
+    </logger>
+
+    <!-- ========================================
+         Kafka & Message Loggers
+         additivity=true: Log to console + spring-jwt.log + kafka-detail.log
+         ======================================== -->
+
+    <!-- ========================================
+         Kafka & Message Detailed Log
+         ======================================== -->
+    <appender name="KAFKA_DETAIL" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/kafka/kafka-detail.log</file>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSS'Z', UTC} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/kafka/archived/kafka-detail.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>5GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- Kafka Application Code - Configuration -->
+    <logger name="com.springjwt.core.kafka" level="INFO" additivity="true">
+        <appender-ref ref="KAFKA_DETAIL"/>
+    </logger>
+
+    <!-- Kafka Application Code - Producer -->
+    <logger name="com.springjwt.module.message.business.producer" level="INFO" additivity="true">
+        <appender-ref ref="KAFKA_DETAIL"/>
+    </logger>
+
+    <!-- Kafka Application Code - Consumer -->
+    <logger name="com.springjwt.module.message.business.consumer" level="INFO" additivity="true">
+        <appender-ref ref="KAFKA_DETAIL"/>
+    </logger>
+
+    <!-- Kafka Application Code - Message Module -->
+    <logger name="com.springjwt.module.message" level="INFO" additivity="true">
+        <appender-ref ref="KAFKA_DETAIL"/>
+    </logger>
+
+    <!-- Spring Kafka Framework -->
+    <logger name="org.springframework.kafka" level="INFO" additivity="true">
+        <appender-ref ref="KAFKA_DETAIL"/>
+    </logger>
+
+    <!-- Apache Kafka Client -->
+    <logger name="org.apache.kafka" level="INFO" additivity="true">
+        <appender-ref ref="KAFKA_DETAIL"/>
+    </logger>
+
+    <!-- Kafka Consumer Details -->
+    <logger name="org.apache.kafka.clients.consumer" level="DEBUG" additivity="true">
+        <appender-ref ref="KAFKA_DETAIL"/>
+    </logger>
+
+    <!-- Kafka Producer Details -->
+    <logger name="org.apache.kafka.clients.producer" level="DEBUG" additivity="true">
+        <appender-ref ref="KAFKA_DETAIL"/>
+    </logger>
+
+</configuration>

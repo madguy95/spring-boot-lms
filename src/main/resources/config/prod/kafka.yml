@@ -1,0 +1,75 @@
+# ========================================
+# PROD - KAFKA CONFIGURATION
+# ========================================
+# Production environment Kafka settings
+# Optimized for high availability, throughput, and reliability
+
+spring:
+  kafka:
+    # Bootstrap Servers: Multiple Kafka brokers for high availability
+    # 3 brokers = Recommended minimum for production cluster
+    # Can be overridden by KAFKA_BOOTSTRAP_SERVERS environment variable
+    # Format: broker1:9092,broker2:9092,broker3:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka-broker-1:9092,kafka-broker-2:9092,kafka-broker-3:9092}
+
+    producer:
+      # retries: Number of retry attempts for failed sends
+      # 5 = Higher than dev/staging for better reliability
+      # More retries = more resilient to transient failures
+      retries: 5
+
+    consumer:
+      # Consumer Group ID: Unique identifier for production consumers
+      # Must be different from dev/staging to avoid conflicts
+      # Can be overridden by KAFKA_CONSUMER_GROUP_ID environment variable
+      group-id: ${KAFKA_CONSUMER_GROUP_ID:spring-jwt-prod-group}
+
+    listener:
+      # Concurrency: Number of concurrent consumer threads
+      # 5 = High parallelism for maximum throughput
+      # More threads = better performance, more resource usage
+      # Should be <= number of partitions for optimal utilization
+      concurrency: 5
+
+# Topic Configuration
+# Settings for creating Kafka topics in production
+kafka:
+  topics:
+    # Email Queue Topic Configuration
+    email-queue:
+      # partitions: Number of partitions for the topic
+      # 6 = High partitioning for parallel processing
+      # More partitions = higher throughput and better load distribution
+      # Allows 5 concurrent consumers + 1 spare for scaling
+      partitions: 6
+
+      # replication-factor: Number of replicas for each partition
+      # 3 = Full replication across all brokers
+      # Provides high availability - can lose 2 brokers without data loss
+      # Industry standard for production systems
+      replication-factor: 3
+
+      # retention-ms: How long to keep messages in milliseconds
+      # 86400000ms = 24 hours (1 day)
+      # Balance between data availability and storage costs
+      # Emails are typically processed quickly, don't need long retention
+      retention-ms: 86400000
+
+    # Dead Letter Topic Configuration
+    dlt:
+      # partitions: Single partition for failed messages
+      # 1 = Sufficient as failed messages are rare
+      # Simpler to manage and inspect failed messages
+      partitions: 1
+
+      # replication-factor: Match main topic replication
+      # 3 = Full replication for failed message safety
+      # Failed messages are important for debugging and recovery
+      replication-factor: 3
+
+      # retention-ms: Keep failed messages longer for investigation
+      # 604800000ms = 7 days (1 week)
+      # Longer retention allows thorough investigation of production issues
+      # Can be increased if needed for compliance or debugging
+      retention-ms: 604800000
+

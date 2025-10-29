@@ -1,0 +1,57 @@
+# ========================================
+# DEV - KAFKA CONFIGURATION
+# ========================================
+# Development environment Kafka settings
+# Optimized for local development with single broker
+
+spring:
+  kafka:
+    # Bootstrap Servers: Single local Kafka broker
+    # Default: localhost:9092 (typical for local development)
+    # Can be overridden by KAFKA_BOOTSTRAP_SERVERS environment variable
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+    consumer:
+      # Consumer Group ID: Unique identifier for this consumer group
+      # Used to track consumer offsets and coordinate partition assignment
+      # Can be overridden by KAFKA_CONSUMER_GROUP_ID environment variable
+      group-id: ${KAFKA_CONSUMER_GROUP_ID:spring-jwt-dev-group}
+
+    listener:
+      # Concurrency: Number of concurrent consumer threads
+      # 1 = Single thread (simple for debugging in dev)
+      # Low concurrency is fine for local development
+      concurrency: 1
+
+# Topic Configuration
+# Settings for creating Kafka topics in development
+kafka:
+  topics:
+    # Email Queue Topic Configuration
+    email-queue:
+      # partitions: Number of partitions for the topic
+      # 1 = Single partition (simple for local dev)
+      partitions: 1
+
+      # replication-factor: Number of replicas for each partition
+      # 1 = No replication (OK for local single-broker setup)
+      replication-factor: 1
+
+      # retention-ms: How long to keep messages in milliseconds
+      # 86400000ms = 24 hours (1 day)
+      # Shorter retention is fine for dev
+      retention-ms: 86400000
+
+    # Dead Letter Topic Configuration
+    dlt:
+      # partitions: Usually 1 is enough for failed messages
+      partitions: 1
+
+      # replication-factor: 1 for local dev
+      replication-factor: 1
+
+      # retention-ms: Keep failed messages for investigation
+      # 604800000ms = 7 days (1 week)
+      # Longer than main topic to allow debugging
+      retention-ms: 604800000
+

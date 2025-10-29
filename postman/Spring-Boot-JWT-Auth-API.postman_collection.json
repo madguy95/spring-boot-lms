@@ -1,0 +1,1150 @@
+{
+  "info": {
+    "_postman_id": "spring-jwt-v6",
+    "name": "Spring Boot JWT API - V6 (Auto File Path)",
+    "description": "✅ AUTO FILE SELECTION: File tự động được chọn từ đường dẫn tương đối!\n\n📁 File 'sample-document.txt' nằm cùng thư mục với collection này\n📝 Cần config working directory Setting -> General -> Working directory = địa chỉ folder chứa file 'sample-document.txt'",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "6.0.0"
+  },
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Login (Sign In)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.accessToken) {",
+                  "        pm.collectionVariables.set(\"access_token\", jsonData.data.accessToken);",
+                  "        pm.collectionVariables.set(\"refresh_token\", jsonData.data.refreshToken);",
+                  "        console.log(\"✅ Login successful! Tokens saved.\");",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"admin\",\n    \"password\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.accessToken) {",
+                  "        pm.collectionVariables.set(\"access_token\", jsonData.data.accessToken);",
+                  "        pm.collectionVariables.set(\"refresh_token\", jsonData.data.refreshToken);",
+                  "        console.log(\"✅ Token refreshed!\");",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"refreshToken\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/refresh",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "⚠️ Revoke Token (Logout)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    pm.collectionVariables.set(\"access_token\", \"\");",
+                  "    pm.collectionVariables.set(\"refresh_token\", \"\");",
+                  "    console.log(\"✅ Logged out! Tokens cleared.\");",
+                  "    console.log(\"➡️ Run 'Login Again' below to continue testing.\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/revoke",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "revoke"
+              ]
+            },
+            "description": "⚠️ Logout và xóa tokens.\n➡️ Sau khi chạy, chạy 'Login Again' bên dưới để đăng nhập lại."
+          },
+          "response": []
+        },
+        {
+          "name": "🔄 Login Again (After Revoke)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.accessToken) {",
+                  "        pm.collectionVariables.set(\"access_token\", jsonData.data.accessToken);",
+                  "        pm.collectionVariables.set(\"refresh_token\", jsonData.data.refreshToken);",
+                  "        console.log(\"✅ Logged in again! Tokens restored.\");",
+                  "        console.log(\"✅ You can now continue testing other APIs.\");",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"admin\",\n    \"password\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                ""
+              ]
+            },
+            "description": "🔄 Đăng nhập lại sau khi Revoke Token.\n✅ Chạy API này ngay sau Revoke để tiếp tục test các API khác."
+          },
+          "response": []
+        }
+      ],
+      "description": "🔐 Authentication APIs\n\n📝 Thứ tự gợi ý:\n1. Login (Sign In) - Đăng nhập lần đầu\n2. Refresh Token - Làm mới token (nếu cần)\n3. Revoke Token - Logout\n4. Login Again - Đăng nhập lại để tiếp tục test"
+    },
+    {
+      "name": "2. User Management",
+      "item": [
+        {
+          "name": "Register New User (Auto-Generate)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Auto-generate unique username and email",
+                  "const timestamp = Date.now();",
+                  "",
+                  "const username = 'user_' + timestamp;",
+                  "const email = 'user_' + timestamp + '@example.com';",
+                  "",
+                  "pm.collectionVariables.set('generated_username', username);",
+                  "pm.collectionVariables.set('generated_email', email);",
+                  "",
+                  "console.log('🆕 Generated new user:');",
+                  "console.log('   Username: ' + username);",
+                  "console.log('   Email: ' + email);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    console.log('✅ User registered successfully!');",
+                  "    console.log('   Username: ' + pm.collectionVariables.get('generated_username'));",
+                  "    console.log('   Email: ' + pm.collectionVariables.get('generated_email'));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"{{generated_username}}\",\n    \"email\": \"{{generated_email}}\",\n    \"password\": \"Test@123456\",\n    \"roles\": [\"user\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/user/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "register"
+              ]
+            },
+            "description": "✅ AUTO-GENERATE USERNAME & EMAIL!\n\n🎯 Mỗi lần chạy sẽ tự động tạo:\n- Username: user_<timestamp>_<random>\n- Email: user_<timestamp>_<random>@example.com\n\n📝 Ví dụ:\n- user_1730000000000_1234\n- user_1730000000000_1234@example.com\n\n✅ Có thể chạy nhiều lần mà không bị lỗi duplicate!"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. File Management",
+      "item": [
+        {
+          "name": "Upload File (Auto-Select)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.id) {",
+                  "        pm.collectionVariables.set(\"file_id\", jsonData.data.id);",
+                  "        pm.collectionVariables.set(\"file_name\", jsonData.data.storedName);",
+                  "        console.log(\"✅ File uploaded! ID: \" + jsonData.data.id);",
+                  "        console.log(\"📄 File: \" + jsonData.data.originalName);",
+                  "        console.log(\"💾 Stored: \" + jsonData.data.storedName);",
+                  "        console.log(\"📊 Size: \" + jsonData.data.fileSize + \" bytes\");",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "sample-document.txt",
+                  "description": "✅ AUTO: File được chọn tự động từ relative path: sample-document.txt"
+                },
+                {
+                  "key": "folder",
+                  "value": "uploads",
+                  "type": "text",
+                  "description": "Optional: Chỉ định thư mục upload",
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/files/upload",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "files",
+                "upload"
+              ]
+            },
+            "description": "✅ FILE TỰ ĐỘNG ĐƯỢC CHỌN!\n\n📁 File: sample-document.txt (cùng thư mục với collection)\n🎯 Postman tự động tìm file từ relative path\n📝 Hoặc click 'Select Files' để chọn file khác"
+          },
+          "response": []
+        },
+        {
+          "name": "Get File Info by ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/files/info/{{file_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "files",
+                "info",
+                "{{file_id}}"
+              ]
+            },
+            "description": "Lấy thông tin metadata của file (sử dụng file_id tự động lưu)"
+          },
+          "response": []
+        },
+        {
+          "name": "Download File by stored name",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/files/{{file_name}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "files",
+                "{{file_name}}"
+              ]
+            },
+            "description": "Download file (sử dụng file_name tự động lưu)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete File by ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/files/{{file_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "files",
+                "{{file_id}}"
+              ]
+            },
+            "description": "Xóa file (sử dụng file_id tự động lưu)"
+          },
+          "response": []
+        }
+      ],
+      "description": "📁 File Management APIs\n✅ Upload tự động chọn file từ relative path"
+    },
+    {
+      "name": "4. Scheduler (Quartz)",
+      "item": [
+        {
+          "name": "Create Job (Auto-Generate)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Auto-generate unique job name",
+                  "const timestamp = Date.now();",
+                  "const randomNum = Math.floor(Math.random() * 10000);",
+                  "const uniqueId = timestamp + '_' + randomNum;",
+                  "",
+                  "const jobName = 'Job_' + uniqueId;",
+                  "const description = 'Auto-generated test job at ' + new Date().toISOString();",
+                  "",
+                  "pm.collectionVariables.set('generated_job_name', jobName);",
+                  "pm.collectionVariables.set('generated_job_description', description);",
+                  "",
+                  "console.log('🆕 Generated new job:');",
+                  "console.log('   Job Name: ' + jobName);",
+                  "console.log('   Description: ' + description);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.id) {",
+                  "        pm.collectionVariables.set(\"jobId\", jsonData.data.id);",
+                  "        console.log(\"✅ Job created successfully!\");",
+                  "        console.log(\"   ID: \" + jsonData.data.id);",
+                  "        console.log(\"   Name: \" + pm.collectionVariables.get('generated_job_name'));",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"jobName\": \"{{generated_job_name}}\",\n    \"jobGroup\": \"TEST\",\n    \"jobClass\": \"com.springjwt.module.scheduler.jobs.HealthCheckJob\",\n    \"description\": \"{{generated_job_description}}\",\n    \"cronExpression\": \"0 0/10 * * * ?\",\n    \"parameters\": {\n        \"timeout\": \"30\",\n        \"retries\": \"3\"\n    }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/scheduler/jobs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "scheduler",
+                "jobs"
+              ]
+            },
+            "description": "✅ AUTO-GENERATE JOB NAME!\n\n🎯 Mỗi lần chạy sẽ tự động tạo:\n- Job Name: Job_<timestamp>_<random>\n- Description: Auto-generated test job at <ISO timestamp>\n\n📝 Ví dụ:\n- Job_1730012345678_4521\n- Auto-generated test job at 2025-10-27T10:30:45.678Z\n\n✅ Có thể chạy nhiều lần mà không bị lỗi duplicate job name!"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Jobs",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/scheduler/jobs?page=0&size=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "scheduler",
+                "jobs"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Job by ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/scheduler/jobs/{{jobId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "scheduler",
+                "jobs",
+                "{{jobId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Pause Job",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/scheduler/jobs/{{jobId}}/pause",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "scheduler",
+                "jobs",
+                "{{jobId}}",
+                "pause"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resume Job",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/scheduler/jobs/{{jobId}}/resume",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "scheduler",
+                "jobs",
+                "{{jobId}}",
+                "resume"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Trigger Job Now",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/scheduler/jobs/{{jobId}}/trigger",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "scheduler",
+                "jobs",
+                "{{jobId}}",
+                "trigger"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Job",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/scheduler/jobs/{{jobId}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "scheduler",
+                "jobs",
+                "{{jobId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "⏰ Scheduler (Quartz) APIs\n✅ Create Job tự động generate job name unique"
+    },
+    {
+      "name": "5. Test Access Control",
+      "item": [
+        {
+          "name": "Public Content",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/test/all",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "test",
+                "all"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "User Content",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/test/user",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "test",
+                "user"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Admin Content",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/test/admin",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "test",
+                "admin"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Audit Logs (Admin Only)",
+      "item": [
+        {
+          "name": "Get User Audit Logs",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/audit-logs/user/admin?page=0&size=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "audit-logs",
+                "user",
+                "admin"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Page number (0-based)"
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "description": "Page size"
+                }
+              ]
+            },
+            "description": "📋 Retrieve paginated audit logs for a specific user.\n\n🔐 Admin role required\n\n📝 Parameters:\n- username: Target username (in path)\n- page: Page number (default: 0)\n- size: Page size (default: 20)\n\n✅ Returns logs sorted by timestamp (newest first)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Audit Logs by Date Range",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/audit-logs/date-range?startTime=2025-01-01T00:00:00Z&endTime=2025-12-31T23:59:59Z&page=0&size=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "audit-logs",
+                "date-range"
+              ],
+              "query": [
+                {
+                  "key": "startTime",
+                  "value": "2025-01-01T00:00:00Z",
+                  "description": "Start time (ISO-8601)"
+                },
+                {
+                  "key": "endTime",
+                  "value": "2025-12-31T23:59:59Z",
+                  "description": "End time (ISO-8601)"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "📅 Retrieve audit logs within a specific date range.\n\n🔐 Admin role required\n\n📝 Date format: ISO-8601 (yyyy-MM-dd'T'HH:mm:ss'Z')\n\nExample:\n- startTime: 2025-01-01T00:00:00Z\n- endTime: 2025-12-31T23:59:59Z"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Audit Logs by Correlation ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/audit-logs/correlation/abc-123-def",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "audit-logs",
+                "correlation",
+                "abc-123-def"
+              ]
+            },
+            "description": "🔗 Retrieve all audit logs for a specific request using correlation ID.\n\n🔐 Admin role required\n\n💡 Use correlation ID from response headers (X-Correlation-ID) or logs to track all operations in a single request flow.\n\n✅ Returns all logs related to the same request"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Entity History",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/audit-logs/entity/User/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "audit-logs",
+                "entity",
+                "User",
+                "1"
+              ]
+            },
+            "description": "📜 Retrieve all changes made to a specific entity.\n\n🔐 Admin role required\n\n📝 Parameters:\n- entityType: Entity class name (e.g., User, Job, File)\n- entityId: Entity identifier\n\n✅ Examples:\n- /entity/User/1 - All changes for User ID 1\n- /entity/Job/10 - All changes for Job ID 10\n- /entity/File/5 - All changes for File ID 5"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Recent Activity",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/audit-logs/user/admin/recent?days=7",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "audit-logs",
+                "user",
+                "admin",
+                "recent"
+              ],
+              "query": [
+                {
+                  "key": "days",
+                  "value": "7",
+                  "description": "Number of days to look back (default: 7)"
+                }
+              ]
+            },
+            "description": "⏰ Retrieve user's recent activity within specified days.\n\n🔐 Admin role required\n\n📝 Parameters:\n- username: Target username (in path)\n- days: Number of days to look back (default: 7)\n\n✅ Examples:\n- days=7: Last 7 days\n- days=30: Last 30 days\n- days=1: Today only"
+          },
+          "response": []
+        }
+      ],
+      "description": "🔍 Audit Log APIs - Admin Only\n\n🔐 **Admin access required for all endpoints**\n\n📋 Features:\n- Query logs by user, date range, correlation ID\n- Track entity history (who changed what and when)\n- Monitor user activity\n- Trace complete request flows with correlation ID\n\n💡 Use Cases:\n- Security auditing\n- Compliance reporting\n- Troubleshooting user issues\n- Tracking data changes"
+    },
+    {
+      "name": "7. Kafka & Messaging",
+      "item": [
+        {
+          "name": "Send Email Request to Kafka",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    console.log(\"✅ Email request sent to Kafka successfully!\");",
+                  "    console.log(\"📧 Check logs/kafka/kafka-detail.log for processing details.\");",
+                  "    console.log(\"🔄 Consumer will process the message asynchronously.\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"to\": \"user@example.com\",\n    \"subject\": \"Test Email from Kafka\",\n    \"body\": \"This is a test email sent through Kafka message queue.\",\n    \"from\": \"noreply@yourapp.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/kafka/email-queue",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "kafka",
+                "email-queue"
+              ]
+            },
+            "description": "📧 Send an email request to Kafka queue.\n\n🔄 Process flow:\n1. API receives email request\n2. Message sent to Kafka topic: email-queue\n3. Kafka consumer processes the message asynchronously\n4. Email sent (or logged in test mode)\n\n📝 Email data:\n- to: Recipient email address (required)\n- subject: Email subject (required)\n- body: Email content (required)\n- from: Sender email address (optional)\n\n✅ Check logs:\n- logs/kafka/kafka-detail.log - Kafka processing\n- logs/spring-jwt.log - General application logs"
+          },
+          "response": []
+        },
+        {
+          "name": "Kafka Health Check",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/kafka/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "kafka",
+                "health"
+              ]
+            },
+            "description": "🏥 Simple Kafka health check endpoint.\n\n✅ Returns success if Kafka controller is running.\n\n💡 For detailed health check with cluster info, use:\nGET {{base_url}}/actuator/health\n\nDetailed health check includes:\n- Cluster ID\n- Broker count and addresses\n- Controller node\n- Topics count and list\n- Consumer groups status"
+          },
+          "response": []
+        }
+      ],
+      "description": "📨 Kafka & Messaging APIs\n\n✅ Features:\n- Send email requests to Kafka queue\n- Asynchronous message processing\n- Health check endpoint\n\n🔄 Message Flow:\n1. API sends message to Kafka topic\n2. Kafka stores message reliably\n3. Consumer processes message asynchronously\n4. Check logs for processing details\n\n📁 Log Files:\n- logs/kafka/kafka-detail.log - Kafka-specific logs\n- logs/spring-jwt.log - General application logs\n\n💡 Requirements:\n- app.kafka.enabled=true\n- Kafka broker running and accessible\n\n🔍 Monitoring:\n- Use /actuator/health for detailed status\n- Check consumer groups in logs"
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "jobId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "file_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "file_name",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "generated_username",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "generated_email",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "generated_job_name",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "generated_job_description",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
+

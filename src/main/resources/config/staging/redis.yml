@@ -1,0 +1,28 @@
+# ========================================
+# STAGING - REDIS CONFIGURATION
+# ========================================
+
+spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:staging-redis}  # Redis server hostname (can be overridden by REDIS_HOST env variable)
+      port: ${REDIS_PORT:6379}  # Redis server port (can be overridden by REDIS_PORT env variable)
+      password: ${REDIS_PASSWORD}  # Redis password (can be set via REDIS_PASSWORD env variable)
+      database: 1  # Redis database index for staging
+      ssl:
+        enabled: false  # Disable SSL for Redis connection in staging
+      lettuce:
+        pool:
+          max-active: 15  # Maximum number of connections in the pool
+          max-idle: 10  # Maximum number of idle connections in the pool
+          min-idle: 3  # Minimum number of idle connections in the pool
+          enabled: true  # Enable connection pooling for Lettuce client
+          max-wait: 3000ms  # Maximum wait time for a connection
+        shutdown-timeout: 100ms  # Timeout for shutting down Lettuce client
+      timeout: 60000ms  # Redis connection timeout
+  cache:
+    redis:
+      time-to-live: 1800000  # 30 minutes - cache entry expiration time in milliseconds
+      key-prefix: "staging:spring-jwt:"  # Prefix for all Redis cache keys in staging
+      cache-null-values: false  # Do not cache null values
+      use-key-prefix: true  # Use key prefix for cache entries

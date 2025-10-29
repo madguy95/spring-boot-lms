@@ -1,0 +1,35 @@
+# ========================================
+# COMMON QUARTZ CONFIGURATION
+# ========================================
+# Shared Quartz settings across all environments
+
+app:
+  quartz:
+    auto-startup: ${QUARTZ_AUTO_STARTUP:true}  # Automatically start Quartz scheduler (can be overridden by QUARTZ_AUTO_STARTUP env variable)
+
+spring:
+  quartz:
+    job-store-type: jdbc  # Use JDBC job store for Quartz
+
+    properties:
+      org:
+        quartz:
+          # Scheduler Configuration
+          scheduler:
+            instanceName: SpringBootScheduler  # Name of the Quartz scheduler instance
+            instanceId: AUTO  # Automatically assign instance ID
+            skipUpdateCheck: true
+
+          # JobStore Configuration
+          jobStore:
+            class: org.quartz.impl.jdbcjobstore.JobStoreTX
+            driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+            tablePrefix: QRTZ_
+            useProperties: false
+            misfireThreshold: 60000
+
+          # ThreadPool Configuration
+          threadPool:
+            class: com.springjwt.core.quartz.QuartzThreadPool
+            threadPriority: 5
+            threadsInheritContextClassLoaderOfInitializingThread: true

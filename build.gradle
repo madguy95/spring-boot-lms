@@ -1,0 +1,86 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.4.1'  // Latest stable
+    id 'io.spring.dependency-management' version '1.1.7'  // Latest
+}
+
+group = 'com.satoru'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)  // LTS
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // ===== Spring Boot Starters (3.4.x) =====
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-quartz'
+    implementation 'org.springframework.kafka:spring-kafka'
+
+    // ===== Database Migration =====
+    implementation 'org.flywaydb:flyway-core:10.21.0'  // Latest stable
+    implementation 'org.flywaydb:flyway-mysql:10.21.0'  // MySQL-specific support
+
+    // ===== Redis Connection Pool =====
+    implementation 'org.apache.commons:commons-pool2:2.12.0'  // Required for Lettuce connection pooling
+
+    // ===== Swagger/OpenAPI =====
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
+
+    // ===== Spring Security Messaging =====
+    implementation 'org.springframework.security:spring-security-messaging'
+
+    // ===== Database Drivers =====
+    // MySQL 8.4+ (latest GA)
+    runtimeOnly 'com.mysql:mysql-connector-j:9.1.0'  // Latest (Dec 2024)
+
+    // Oracle (if needed)
+    runtimeOnly 'com.oracle.database.jdbc:ojdbc11:23.6.0.24.10'  // Latest
+
+    // ===== JWT (JJWT) =====
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.6'  // Latest stable
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+
+    // ===== Apache Commons =====
+    implementation 'commons-io:commons-io:2.18.0'  // Latest (Dec 2024)
+    implementation 'org.apache.commons:commons-lang3:3.18.0'  // Latest (Nov 2024)
+
+    // ===== Lombok =====
+    compileOnly 'org.projectlombok:lombok:1.18.36'  // Java 21 compatible
+    annotationProcessor 'org.projectlombok:lombok:1.18.36'
+
+    // ===== Test Data =====
+    implementation 'net.datafaker:datafaker:2.4.2'  // Replacement for javafaker
+
+    // ===== DevTools =====
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    // ===== Testing =====
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'  // Required for JUnit 5
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

@@ -1,0 +1,24 @@
+# ========================================
+# DEV - REDIS CONFIGURATION
+# ========================================
+
+spring:
+  data:
+    redis:
+      host: localhost  # Redis server hostname for local development
+      port: 16379  # Redis server port for local development
+      password: mypass  # Redis password for local development
+      database: 0  # Redis database index for development
+      ssl:
+        enabled: false  # Disable SSL for Redis connection in development
+      lettuce:
+        pool:
+          max-active: 5  # Maximum number of connections in the pool
+          max-idle: 5  # Maximum number of idle connections in the pool
+          min-idle: 1  # Minimum number of idle connections in the pool
+  cache:
+    redis:
+      time-to-live: 3600000  # 1 hour - cache entry expiration time in milliseconds
+      key-prefix: "dev:spring-jwt:"  # Prefix for all Redis cache keys in development
+      cache-null-values: false  # Do not cache null values
+      use-key-prefix: true  # Use key prefix for cache entries

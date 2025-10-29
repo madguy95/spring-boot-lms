@@ -1,0 +1,16 @@
+# ========================================
+# STAGING - QUARTZ CONFIGURATION
+# ========================================
+
+spring:
+  quartz:
+    jdbc:
+      initialize-schema: always  # Always initialize Quartz DB schema on startup
+    properties:
+      org:
+        quartz:
+          jobStore:
+            isClustered: true  # Enable clustering for distributed job execution
+            clusterCheckinInterval: 20000  # Interval (ms) for cluster node check-in
+          threadPool:
+            threadCount: 15  # Number of threads for Quartz job execution

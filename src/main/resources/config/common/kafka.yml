@@ -1,0 +1,221 @@
+# ========================================
+# COMMON KAFKA CONFIGURATION
+# ========================================
+# Shared Kafka settings across all environments
+# These are base configurations that can be overridden by environment-specific files
+
+# ===== Spring Kafka Integration =====
+# Standard Spring Boot Kafka properties
+# Documentation: https://docs.spring.io/spring-kafka/reference/
+
+spring:
+  kafka:
+    # ===== Bootstrap Servers =====
+    # Comma-separated list of Kafka broker addresses
+    # Format: host1:port1,host2:port2,host3:port3
+    # Can be overridden by KAFKA_BOOTSTRAP_SERVERS environment variable
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+    # ===== Consumer Configuration =====
+    consumer:
+      # Deserializers - Convert bytes back to Java objects
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+
+      # auto-offset-reset: What to do when there is no initial offset
+      # - earliest: Start from the beginning
+      # - latest: Start from the end (skip old messages)
+      # - none: Throw exception if no offset found
+      auto-offset-reset: earliest
+
+      # enable-auto-commit: false = Manual acknowledgment
+      # Gives fine-grained control over when messages are marked as consumed
+      # More reliable but requires explicit acknowledgment in code
+      enable-auto-commit: false
+
+      # max-poll-records: Maximum number of records in a single poll
+      # Higher = better throughput, but longer processing time per batch
+      # Lower = more frequent polling, better for real-time processing
+      max-poll-records: 500
+
+      properties:
+        # ===== JSON Deserializer Properties =====
+        # trusted.packages: Which packages can be deserialized
+        # "*" = Trust all packages (use with caution in production)
+        spring.json.trusted.packages: "com.springjwt.module.message.model.*"
+
+        # use.type.headers: Whether to use type information from message headers
+        # false = Simpler, doesn't rely on headers
+        spring.json.use.type.headers: false
+
+        # default.type: Default Java type if type info is missing
+        spring.json.value.default.type: "java.lang.Object"
+
+        # isolation.level: Read committed to avoid uncommitted transaction data
+        isolation.level: read_committed
+
+        # ===== Kafka Consumer Properties =====
+        # max.poll.interval.ms: Maximum time between polls before consumer is considered dead
+        # 300000ms = 5 minutes
+        max.poll.interval.ms: 300000
+
+        # session.timeout.ms: Time before consumer is considered dead if no heartbeat
+        # 10000ms = 10 seconds
+        session.timeout.ms: 10000
+
+        # heartbeat.interval.ms: How often to send heartbeat to coordinator
+        # Should be lower than session.timeout.ms
+        # 3000ms = 3 seconds
+        heartbeat.interval.ms: 3000
+
+        # fetch.min.bytes: Minimum data size to fetch
+        # 1 byte = Fetch immediately even if only 1 byte available
+        fetch.min.bytes: 1
+
+        # fetch.max.wait.ms: Maximum time to wait for fetch.min.bytes
+        # 500ms = Wait up to 500ms for more data to accumulate
+        fetch.max.wait.ms: 500
+
+        # auto.commit.interval.ms: How often to auto-commit offsets (if enabled)
+        # 1000ms = 1 second
+        auto.commit.interval.ms: 1000
+
+        # metrics.recording.level: Level of metrics to record
+        # INFO = Standard metrics for monitoring
+        metrics.recording.level: INFO
+
+    # ===== Producer Configuration =====
+    producer:
+      # Serializers - Convert Java objects to bytes
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+      # acks: Number of acknowledgments the producer requires
+      # all = Wait for all in-sync replicas (most reliable, slowest)
+      # 1 = Wait for leader only (balanced)
+      # 0 = Don't wait (fastest, least reliable)
+      acks: all
+
+      # retries: Number of times to retry failed sends
+      # 3 = Retry up to 3 times before giving up
+      retries: 3
+
+      properties:
+        # ===== JSON Serializer Properties =====
+        # add.type.headers: Whether to add type information to message headers
+        # false = Simpler messages, no type metadata
+        spring.json.add.type.headers: false
+
+        # ===== Kafka Producer Properties =====
+        # batch.size: Maximum size of a batch in bytes
+        # 16384 bytes = 16KB
+        # Larger batches = better throughput, higher latency
+        batch.size: 16384
+
+        # buffer.memory: Total memory available for buffering
+        # 33554432 bytes = 32MB
+        buffer.memory: 33554432
+
+        # linger.ms: Time to wait before sending a batch
+        # 1ms = Send almost immediately
+        # Higher values = better batching, higher latency
+        linger.ms: 1
+
+        # max.in.flight.requests.per.connection: Max unacknowledged requests
+        # 1 = Strict ordering (send one at a time)
+        # Higher = better throughput, no ordering guarantee
+        max.in.flight.requests.per.connection: 1
+
+        # enable.idempotence: Prevent duplicate messages
+        # true = Kafka ensures exactly-once delivery (recommended for production)
+        enable.idempotence: true
+
+        # compression.type: Compression algorithm
+        # snappy = Fast compression with good ratio
+        # Other options: gzip, lz4, zstd, none
+        compression.type: snappy
+
+        # request.timeout.ms: Timeout for requests to broker
+        # 30000ms = 30 seconds
+        request.timeout.ms: 30000
+
+        # connections.max.idle.ms: Close idle connections after this time
+        # 540000ms = 9 minutes
+        connections.max.idle.ms: 540000
+
+        # transaction.timeout.ms: Timeout for transactions
+        # 60000ms = 1 minute
+        transaction.timeout.ms: 60000
+
+        # transactional.id: Unique ID for transactions
+        # Uses pod/hostname to ensure uniqueness in distributed systems
+        transactional.id: ${TRANSACTION_ID_PREFIX:spring-jwt-tx}-${HOSTNAME:${POD_NAME:localhost}}
+
+        # metrics.recording.level: Level of metrics to record
+        metrics.recording.level: INFO
+
+    # ===== Listener Configuration =====
+    listener:
+      # ack-mode: When to acknowledge messages
+      # manual = Explicit acknowledgment in code (most control)
+      # Other options: batch, record, manual_immediate
+      ack-mode: manual
+
+      # concurrency: Number of concurrent consumer threads
+      # 3 = Process 3 messages in parallel per partition
+      # Higher = better throughput, more resource usage
+      concurrency: 3
+
+      # poll-timeout: Timeout for polling messages
+      # 3000ms = 3 seconds
+      poll-timeout: 3000
+
+# ===== Custom Kafka Configuration =====
+# Application-specific Kafka settings (not standard Spring Kafka properties)
+
+kafka:
+  # ===== Error Handling & Retry Configuration =====
+  # Controls retry behavior when message processing fails
+  error:
+    # max-attempts: Number of times to retry before sending to DLQ
+    # 3 = Retry 3 times (total 4 attempts including first try)
+    max-attempts: 3
+
+    # backoff-interval: Initial wait time between retries in milliseconds
+    # 1000ms = 1 second for first retry
+    backoff-interval: 1000
+
+    # backoff-multiplier: Multiplier for exponential backoff
+    # 2.0 = Double the wait time each retry (1s, 2s, 4s, 8s...)
+    backoff-multiplier: 2.0
+
+    # max-backoff-interval: Maximum wait time between retries
+    # 10000ms = 10 seconds cap
+    # Prevents backoff from growing too large
+    max-backoff-interval: 10000
+
+  # ===== Dead Letter Queue (DLQ) Configuration =====
+  # Failed messages are sent to DLQ for manual inspection/reprocessing
+  dlq:
+    # enabled: Whether to send failed messages to DLQ
+    # true = Send to DLQ after all retries
+    # false = Just log the error
+    enabled: true
+
+    # suffix: Suffix to append to original topic name for DLQ topic
+    # .DLT = Dead Letter Topic
+    # Example: email-queue -> email-queue.DLT
+    suffix: .DLT
+
+  # ===== Health Check Configuration =====
+  # Monitoring Kafka cluster availability via Spring Boot Actuator
+  health:
+    # enabled: Enable Kafka health check endpoint
+    # true = Create KafkaAdmin and KafkaHealthIndicator beans
+    enabled: true
+
+    # timeout: Timeout for health check in milliseconds
+    # 5000ms = 5 seconds
+    # Prevents health check from hanging
+    timeout: 5000
+

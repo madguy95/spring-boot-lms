@@ -1,0 +1,59 @@
+# ========================================
+# STAGING - KAFKA CONFIGURATION
+# ========================================
+# Staging environment Kafka settings
+# Simulates production with reduced resources
+
+spring:
+  kafka:
+    # Bootstrap Servers: Single Kafka broker for staging
+    # Can be overridden by KAFKA_BOOTSTRAP_SERVERS environment variable
+    # Example: staging-kafka:9092 or staging-kafka-1:9092,staging-kafka-2:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:staging-kafka:9092}
+
+    consumer:
+      # Consumer Group ID: Unique identifier for staging consumers
+      # Separate from dev and prod to avoid conflicts
+      # Can be overridden by KAFKA_CONSUMER_GROUP_ID environment variable
+      group-id: ${KAFKA_CONSUMER_GROUP_ID:spring-jwt-staging-group}
+
+    listener:
+      # Concurrency: Number of concurrent consumer threads
+      # 3 = Moderate parallelism for staging testing
+      # Balanced between dev (1) and prod (5)
+      concurrency: 3
+
+# Topic Configuration
+# Settings for creating Kafka topics in staging
+kafka:
+  topics:
+    # Email Queue Topic Configuration
+    email-queue:
+      # partitions: Number of partitions for the topic
+      # 3 = Moderate partitioning for parallel processing
+      # Allows testing partition behavior without full prod scale
+      partitions: 3
+
+      # replication-factor: Number of replicas for each partition
+      # 2 = Basic replication for fault tolerance testing
+      # Lower than prod (3) to save resources
+      replication-factor: 2
+
+      # retention-ms: How long to keep messages in milliseconds
+      # 86400000ms = 24 hours (1 day)
+      # Same as dev - staging data doesn't need long retention
+      retention-ms: 86400000
+
+    # Dead Letter Topic Configuration
+    dlt:
+      # partitions: Single partition is enough for failed messages
+      partitions: 1
+
+      # replication-factor: Match staging replication strategy
+      replication-factor: 2
+
+      # retention-ms: Keep failed messages for investigation
+      # 604800000ms = 7 days (1 week)
+      # Allows time to investigate issues in staging
+      retention-ms: 604800000
+

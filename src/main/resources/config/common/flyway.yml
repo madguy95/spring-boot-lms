@@ -1,0 +1,14 @@
+# ========================================
+# COMMON - FLYWAY CONFIGURATION
+# ========================================
+# Common Flyway Database Migration configuration
+# Applied to all environments
+
+spring:
+  flyway:
+    enabled: ${FLYWAY_ENABLED:true}  # Enable Flyway migrations (can be overridden by FLYWAY_ENABLED env variable)
+    locations: classpath:db/migration  # Location of migration scripts
+    encoding: UTF-8  # Encoding for migration scripts
+    validate-on-migrate: true  # Validate migrations before running
+    out-of-order: false  # Disallow out-of-order migrations
+    placeholder-replacement: true  # Allow placeholder replacement in SQL

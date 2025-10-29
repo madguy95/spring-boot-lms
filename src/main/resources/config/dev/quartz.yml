@@ -1,0 +1,15 @@
+# ========================================
+# DEV - QUARTZ CONFIGURATION
+# ========================================
+
+spring:
+  quartz:
+    jdbc:
+      initialize-schema: always  # Always initialize Quartz DB schema on startup for development
+    properties:
+      org:
+        quartz:
+          jobStore:
+            isClustered: false  # Disable clustering for local development
+          threadPool:
+            threadCount: 5  # Number of threads for Quartz job execution in development

@@ -1,0 +1,24 @@
+# ========================================
+# PROD - REDIS CONFIGURATION
+# ========================================
+
+spring:
+  data:
+    redis:
+      host: ${REDIS_HOST}  # Redis server hostname (set via REDIS_HOST env variable)
+      port: ${REDIS_PORT:6379}  # Redis server port (default: 6379, can be overridden by REDIS_PORT env variable)
+      password: ${REDIS_PASSWORD}  # Redis password (set via REDIS_PASSWORD env variable)
+      database: 0  # Redis database index for production
+      ssl:
+        enabled: true  # Enable SSL for Redis connection in production
+      lettuce:
+        pool:
+          max-active: 20  # Maximum number of connections in the pool
+          max-idle: 10  # Maximum number of idle connections in the pool
+          min-idle: 5  # Minimum number of idle connections in the pool
+  cache:
+    redis:
+      time-to-live: 3600000  # 1 hour - cache entry expiration time in milliseconds
+      key-prefix: "prod:spring-jwt:"  # Prefix for all Redis cache keys in production
+      cache-null-values: false  # Do not cache null values
+      use-key-prefix: true  # Use key prefix for cache entries
