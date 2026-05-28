@@ -3,6 +3,7 @@ package com.springjwt.module.course.model.request;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 @Getter
@@ -21,9 +22,8 @@ public class CourseListRequest {
     @Max(value = 100, message = "course.validation.size.max")
     private int size = 50;
 
-    @Pattern(regexp = "^(coding|design|robotics|stem|language|game)$",
-            message = "course.validation.category.invalid")
-    private String category;
+    @Size(max = 50, message = "course.validation.tool.size")
+    private String tool;
 
     @Pattern(regexp = "^(published|draft|unpublished)$",
             message = "course.validation.status.invalid")

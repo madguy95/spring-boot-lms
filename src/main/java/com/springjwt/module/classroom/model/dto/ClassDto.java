@@ -18,6 +18,7 @@ public class ClassDto {
     private String name;
     private String label;
     private String location;
+    private String room;
     private String schedule;
     private Integer enrolled;
     private Integer capacity;

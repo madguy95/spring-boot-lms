@@ -17,7 +17,7 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     @EntityGraph(attributePaths = {"sessions", "discounts"})
     @Query(value = """
             select distinct c from Course c
-            where (:category is null or c.category = :category)
+            where (:tool is null or c.tool = :tool)
               and (:status is null or c.status = :status)
               and (:search is null
                    or lower(cast(c.title as string))   like lower(cast(concat('%', :search, '%') as string))
@@ -26,14 +26,14 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
             """,
             countQuery = """
             select count(distinct c.id) from Course c
-            where (:category is null or c.category = :category)
+            where (:tool is null or c.tool = :tool)
               and (:status is null or c.status = :status)
               and (:search is null
                    or lower(cast(c.title as string))   like lower(cast(concat('%', :search, '%') as string))
                    or lower(cast(c.code as string))    like lower(cast(concat('%', :search, '%') as string))
                    or lower(cast(c.tagline as string)) like lower(cast(concat('%', :search, '%') as string)))
             """)
-    Page<Course> search(@Param("category") String category,
+    Page<Course> search(@Param("tool") String tool,
                         @Param("status") String status,
                         @Param("search") String search,
                         Pageable pageable);
@@ -47,5 +47,5 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
 
     long countByStatus(String status);
 
-    long countByCategory(String category);
+    long countByTool(String tool);
 }

@@ -11,7 +11,7 @@ import java.util.Set;
 @Entity
 @Table(name = "courses", indexes = {
         @Index(name = "idx_courses_status", columnList = "status"),
-        @Index(name = "idx_courses_category", columnList = "category")
+        @Index(name = "idx_courses_tool", columnList = "tool")
 })
 @Getter
 @Setter
@@ -36,11 +36,8 @@ public class Course extends BaseEntity {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "category", nullable = false, length = 20)
-    private String category;
-
-    @Column(name = "level", nullable = false, length = 20)
-    private String level;
+    @Column(name = "tool", nullable = false, length = 50)
+    private String tool;
 
     @Column(name = "status", nullable = false, length = 20)
     @Builder.Default

@@ -9,6 +9,9 @@ import com.springjwt.module.course.domain.repository.CourseRepository;
 import com.springjwt.module.course.domain.service.CourseDomainService;
 import com.springjwt.module.course.model.dto.*;
 import com.springjwt.module.course.model.request.*;
+import com.springjwt.module.masterdata.business.MasterDataService;
+import com.springjwt.module.masterdata.domain.entity.MasterData;
+import com.springjwt.module.masterdata.domain.repository.MasterDataRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -29,21 +32,12 @@ public class CourseServiceImpl implements CourseService {
     private static final String STATUS_PUBLISHED = "published";
     private static final String STATUS_DRAFT = "draft";
     private static final String STATUS_UNPUBLISHED = "unpublished";
-
-    private static final List<String> CATEGORIES =
-            List.of("coding", "design", "robotics", "stem", "language", "game");
-
-    private static final Map<String, String> COVER_PREFIX_BY_CATEGORY = Map.of(
-            "coding", "CODE",
-            "design", "DSGN",
-            "robotics", "ROBO",
-            "stem", "STEM",
-            "language", "LANG",
-            "game", "GAME"
-    );
+    private static final String MASTER_TYPE_TOOL = "tool";
 
     private final CourseRepository courseRepository;
     private final CourseDomainService courseDomainService;
+    private final MasterDataService masterDataService;
+    private final MasterDataRepository masterDataRepository;
 
     @Override
     public Page<CourseDto> listCourses(CourseListRequest request) {
@@ -52,7 +46,7 @@ public class CourseServiceImpl implements CourseService {
         String search = normalize(request.getSearch());
 
         Page<Course> courses = courseRepository.search(
-                request.getCategory(), request.getStatus(), search, pageable);
+                request.getTool(), request.getStatus(), search, pageable);
         List<CourseDto> data = courses.stream().map(this::toDto).toList();
         return new PageImpl<>(data, pageable, courses.getTotalElements());
     }
@@ -67,6 +61,7 @@ public class CourseServiceImpl implements CourseService {
     public CourseDto createCourse(CreateCourseRequest request) {
         courseDomainService.validateUniqueCode(request.getCode().trim(), null);
         courseDomainService.validateAgeRange(request.getMinAge(), request.getMaxAge());
+        masterDataService.validateCodeExists(MASTER_TYPE_TOOL, request.getTool());
 
         boolean hasNumericDiscount = hasNumericDiscount(request.getDiscounts());
         BigDecimal finalTuition = applyDiscounts(request.getTuitionAmount(), request.getDiscounts());
@@ -74,10 +69,9 @@ public class CourseServiceImpl implements CourseService {
         Course course = Course.builder()
                 .code(request.getCode().trim())
                 .title(request.getTitle().trim())
-                .tagline(buildTagline(request.getTags(), request.getLevel(), null))
+                .tagline(buildTagline(request.getTags(), null))
                 .description(trimToNull(request.getDescription()))
-                .category(request.getCategory())
-                .level(request.getLevel())
+                .tool(request.getTool())
                 .status(STATUS_DRAFT)
                 .minAge(request.getMinAge())
                 .maxAge(request.getMaxAge())
@@ -110,8 +104,10 @@ public class CourseServiceImpl implements CourseService {
         }
         if (request.getTitle() != null)        course.setTitle(request.getTitle().trim());
         if (request.getDescription() != null)  course.setDescription(trimToNull(request.getDescription()));
-        if (request.getCategory() != null)     course.setCategory(request.getCategory());
-        if (request.getLevel() != null)        course.setLevel(request.getLevel());
+        if (request.getTool() != null) {
+            masterDataService.validateCodeExists(MASTER_TYPE_TOOL, request.getTool());
+            course.setTool(request.getTool());
+        }
         if (request.getStatus() != null)       course.setStatus(request.getStatus());
         if (request.getMinAge() != null)       course.setMinAge(request.getMinAge());
         if (request.getMaxAge() != null)       course.setMaxAge(request.getMaxAge());
@@ -123,7 +119,7 @@ public class CourseServiceImpl implements CourseService {
         if (request.getPricingNotes() != null)          course.setPricingNotes(trimToNull(request.getPricingNotes()));
 
         if (request.getTags() != null) {
-            course.setTagline(buildTagline(request.getTags(), request.getLevel(), course.getTagline()));
+            course.setTagline(buildTagline(request.getTags(), course.getTagline()));
         }
 
         // Recompute tuition only when pricing inputs touched, mirroring FE behaviour.
@@ -185,8 +181,7 @@ public class CourseServiceImpl implements CourseService {
                 .title(newTitle)
                 .tagline(source.getTagline())
                 .description(source.getDescription())
-                .category(source.getCategory())
-                .level(source.getLevel())
+                .tool(source.getTool())
                 .status(STATUS_DRAFT)
                 .minAge(source.getMinAge())
                 .maxAge(source.getMaxAge())
@@ -237,13 +232,14 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public List<CourseCategoryTabDto> getCategoryTabs() {
-        List<CourseCategoryTabDto> tabs = new ArrayList<>();
-        tabs.add(CourseCategoryTabDto.builder().value("all").count(courseRepository.count()).build());
-        for (String cat : CATEGORIES) {
-            tabs.add(CourseCategoryTabDto.builder()
-                    .value(cat)
-                    .count(courseRepository.countByCategory(cat))
+    public List<CourseToolTabDto> getToolTabs() {
+        List<CourseToolTabDto> tabs = new ArrayList<>();
+        tabs.add(CourseToolTabDto.builder().value("all").count(courseRepository.count()).build());
+        List<MasterData> tools = masterDataRepository.findByTypeAndActiveTrueOrderByPositionAsc(MASTER_TYPE_TOOL);
+        for (MasterData t : tools) {
+            tabs.add(CourseToolTabDto.builder()
+                    .value(t.getCode())
+                    .count(courseRepository.countByTool(t.getCode()))
                     .build());
         }
         return tabs;
@@ -291,8 +287,7 @@ public class CourseServiceImpl implements CourseService {
                 .title(course.getTitle())
                 .tagline(course.getTagline())
                 .description(course.getDescription())
-                .category(course.getCategory())
-                .level(course.getLevel())
+                .tool(course.getTool())
                 .minAge(course.getMinAge())
                 .maxAge(course.getMaxAge())
                 .totalSessions(course.getTotalSessions())
@@ -318,8 +313,7 @@ public class CourseServiceImpl implements CourseService {
                 .title(course.getTitle())
                 .tagline(course.getTagline())
                 .description(course.getDescription())
-                .category(course.getCategory())
-                .level(course.getLevel())
+                .tool(course.getTool())
                 .minAge(course.getMinAge())
                 .maxAge(course.getMaxAge())
                 .totalSessions(course.getTotalSessions())
@@ -472,12 +466,11 @@ public class CourseServiceImpl implements CourseService {
         }
     }
 
-    private String buildTagline(List<String> tags, String level, String fallback) {
+    private String buildTagline(List<String> tags, String fallback) {
         if (tags != null && !tags.isEmpty()) {
             String first = tags.get(0);
             if (first != null && !first.isBlank()) return first.trim();
         }
-        if (level != null && !level.isBlank()) return level;
         return fallback;
     }
 
@@ -514,8 +507,7 @@ public class CourseServiceImpl implements CourseService {
                 .title(course.getTitle())
                 .tagline(course.getTagline())
                 .description(course.getDescription())
-                .category(course.getCategory())
-                .level(course.getLevel())
+                .tool(course.getTool())
                 .status(course.getStatus())
                 .minAge(course.getMinAge())
                 .maxAge(course.getMaxAge())
@@ -563,7 +555,7 @@ public class CourseServiceImpl implements CourseService {
             return Sort.by(direction, "createdAt");
         }
         String field = switch (sortBy) {
-            case "createdAt", "updatedAt", "title", "code", "status", "category", "tuitionAmount" -> sortBy;
+            case "createdAt", "updatedAt", "title", "code", "status", "tool", "tuitionAmount" -> sortBy;
             default -> throw new AppException("course.validation.sortBy.invalid", HttpStatus.BAD_REQUEST);
         };
         return Sort.by(direction, field);

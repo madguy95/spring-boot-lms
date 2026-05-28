@@ -7,7 +7,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CourseCategoryTabDto {
-    private String value;   // "all" or one of the category codes
+public class CourseToolTabDto {
+    private String value;   // "all" or one of the tool codes from master_data
     private long count;
 }

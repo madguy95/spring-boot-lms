@@ -28,6 +28,9 @@ public class UpdateClassRequest {
     @Size(max = 120, message = "class.validation.location.size")
     private String location;
 
+    @Size(max = 50, message = "class.validation.room.size")
+    private String room;
+
     @Valid
     private List<DayScheduleInput> daySchedules;
 

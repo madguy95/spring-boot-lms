@@ -46,6 +46,11 @@ public class ClassEntity extends BaseEntity {
     @Column(name = "location", nullable = false, length = 120)
     private String location;
 
+    // Optional physical room within the campus — null when the class is online.
+    // Code is sourced from master_data(type='room').
+    @Column(name = "room", length = 50)
+    private String room;
+
     // Denormalized human-readable schedule label (e.g. "Mon · Wed · 09:00").
     // Source of truth is the day_schedules collection — this column is rebuilt
     // whenever schedules change.

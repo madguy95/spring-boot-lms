@@ -75,6 +75,7 @@ public class ClassServiceImpl implements ClassService {
                 .course(course)
                 .teacher(teacher)
                 .location(request.getLocation().trim())
+                .room(normalize(request.getRoom()))
                 .schedule(composeScheduleLabel(sortedSchedules))
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
@@ -125,6 +126,11 @@ public class ClassServiceImpl implements ClassService {
         if (request.getLocation() != null) {
             lifecyclePolicy.requireEditable(ClassLifecyclePolicy.F_LOCATION, entity, today);
             entity.setLocation(request.getLocation().trim());
+        }
+        if (request.getRoom() != null) {
+            lifecyclePolicy.requireEditable(ClassLifecyclePolicy.F_ROOM, entity, today);
+            // Empty string = explicit clear (e.g. switched to online). Otherwise trim and store.
+            entity.setRoom(normalize(request.getRoom()));
         }
         if (request.getCapacity() != null) {
             lifecyclePolicy.requireEditable(ClassLifecyclePolicy.F_CAPACITY, entity, today);
@@ -343,6 +349,7 @@ public class ClassServiceImpl implements ClassService {
                 .name(entity.getName())
                 .label(entity.getLabel())
                 .location(entity.getLocation())
+                .room(entity.getRoom())
                 .schedule(entity.getSchedule())
                 .enrolled(entity.getEnrolled())
                 .capacity(entity.getCapacity())

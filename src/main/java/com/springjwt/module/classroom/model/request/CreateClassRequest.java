@@ -29,6 +29,10 @@ public class CreateClassRequest {
     @Size(max = 120, message = "class.validation.location.size")
     private String location;
 
+    // Optional — leave blank for online-only classes.
+    @Size(max = 50, message = "class.validation.room.size")
+    private String room;
+
     @Valid
     @NotNull(message = "class.validation.daySchedules.required")
     @Size(min = 1, message = "class.validation.daySchedules.min")

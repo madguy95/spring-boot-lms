@@ -19,8 +19,7 @@ public class CourseDto {
     private String title;
     private String tagline;
     private String description;
-    private String category;
-    private String level;
+    private String tool;
     private String status;
     private Integer minAge;
     private Integer maxAge;

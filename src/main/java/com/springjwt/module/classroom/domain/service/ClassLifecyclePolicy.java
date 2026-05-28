@@ -42,6 +42,7 @@ public class ClassLifecyclePolicy {
     public static final String F_COURSE = "courseId";
     public static final String F_TEACHER = "teacherId";
     public static final String F_LOCATION = "location";
+    public static final String F_ROOM = "room";
     public static final String F_CAPACITY = "capacity";
     public static final String F_DAY_SCHEDULES = "daySchedules";
     public static final String F_START_DATE = "startDate";
@@ -179,14 +180,14 @@ public class ClassLifecyclePolicy {
 
     // Fields editable while ONGOING (matrix row 4).
     private static final Set<String> ONGOING_EDITABLE = Set.of(
-            F_DESCRIPTION, F_COVER, F_TEACHER, F_LOCATION, F_VISIBILITY, F_END_DATE
+            F_DESCRIPTION, F_COVER, F_TEACHER, F_LOCATION, F_ROOM, F_VISIBILITY, F_END_DATE
     );
 
     // Fields editable while PUBLISHED + hasEnrollments + beforeStart (matrix row 3).
     // `label` and `courseId` are locked because changing them after students see
     // the class would surface a different product than what they enrolled in.
     private static final Set<String> PUBLISHED_HAS_ENROLL_EDITABLE = Set.of(
-            F_DESCRIPTION, F_COVER, F_TEACHER, F_LOCATION,
+            F_DESCRIPTION, F_COVER, F_TEACHER, F_LOCATION, F_ROOM,
             F_CAPACITY, F_DAY_SCHEDULES, F_START_DATE, F_END_DATE, F_VISIBILITY
     );
 

@@ -23,13 +23,8 @@ public class UpdateCourseRequest {
 
     private String description;
 
-    @Pattern(regexp = "^(coding|design|robotics|stem|language|game)$",
-            message = "course.validation.category.invalid")
-    private String category;
-
-    @Pattern(regexp = "^(beginner|intermediate|advanced)$",
-            message = "course.validation.level.invalid")
-    private String level;
+    @Size(max = 50, message = "course.validation.tool.size")
+    private String tool;
 
     @Pattern(regexp = "^(published|draft|unpublished)$",
             message = "course.validation.status.invalid")

@@ -4,8 +4,8 @@ import com.springjwt.common.base.response.ApiResult;
 import com.springjwt.common.base.response.PagedResult;
 import com.springjwt.common.base.response.ResponseFactory;
 import com.springjwt.module.course.business.CourseService;
-import com.springjwt.module.course.model.dto.CourseCategoryTabDto;
 import com.springjwt.module.course.model.dto.CourseDto;
+import com.springjwt.module.course.model.dto.CourseToolTabDto;
 import com.springjwt.module.course.model.dto.CourseStatsDto;
 import com.springjwt.module.course.model.dto.PublicCourseDetailDto;
 import com.springjwt.module.course.model.dto.PublicCourseDto;
@@ -96,10 +96,10 @@ public class CourseController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/courses/category-tabs")
-    @Operation(summary = "Count courses by category (with 'all' tab)")
-    public ResponseEntity<ApiResult<List<CourseCategoryTabDto>>> getCategoryTabs() {
-        return ResponseFactory.success(courseService.getCategoryTabs());
+    @GetMapping("/courses/tool-tabs")
+    @Operation(summary = "Count courses by tool (with 'all' tab)")
+    public ResponseEntity<ApiResult<List<CourseToolTabDto>>> getToolTabs() {
+        return ResponseFactory.success(courseService.getToolTabs());
     }
 
     @GetMapping("/courses/stats")

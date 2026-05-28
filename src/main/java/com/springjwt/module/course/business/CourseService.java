@@ -1,8 +1,8 @@
 package com.springjwt.module.course.business;
 
-import com.springjwt.module.course.model.dto.CourseCategoryTabDto;
 import com.springjwt.module.course.model.dto.CourseDto;
 import com.springjwt.module.course.model.dto.CourseStatsDto;
+import com.springjwt.module.course.model.dto.CourseToolTabDto;
 import com.springjwt.module.course.model.dto.PublicCourseDto;
 import com.springjwt.module.course.model.request.*;
 import org.springframework.data.domain.Page;
@@ -25,7 +25,7 @@ public interface CourseService {
 
     void deleteCourse(Long id);
 
-    List<CourseCategoryTabDto> getCategoryTabs();
+    List<CourseToolTabDto> getToolTabs();
 
     CourseStatsDto getStats();
 

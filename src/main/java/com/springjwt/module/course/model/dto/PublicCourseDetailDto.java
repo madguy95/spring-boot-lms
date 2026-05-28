@@ -28,8 +28,7 @@ public class PublicCourseDetailDto {
     private String title;
     private String tagline;
     private String description;
-    private String category;
-    private String level;
+    private String tool;
     private Integer minAge;
     private Integer maxAge;
     private Integer totalSessions;

@@ -25,15 +25,9 @@ public class CreateCourseRequest {
 
     private String description;
 
-    @NotBlank(message = "course.validation.category.required")
-    @Pattern(regexp = "^(coding|design|robotics|stem|language|game)$",
-            message = "course.validation.category.invalid")
-    private String category;
-
-    @NotBlank(message = "course.validation.level.required")
-    @Pattern(regexp = "^(beginner|intermediate|advanced)$",
-            message = "course.validation.level.invalid")
-    private String level;
+    @NotBlank(message = "course.validation.tool.required")
+    @Size(max = 50, message = "course.validation.tool.size")
+    private String tool;
 
     @NotNull(message = "course.validation.minAge.required")
     @Min(value = 0, message = "course.validation.minAge.min")
@@ -55,7 +49,7 @@ public class CreateCourseRequest {
     @Min(value = 0, message = "course.validation.perClassCapacity.min")
     private Integer perClassCapacity;
 
-    // Tagline derives from the first tag if provided, falling back to level.
+    // Tagline derives from the first non-blank tag if provided.
     @Builder.Default
     private List<String> tags = new ArrayList<>();
 
