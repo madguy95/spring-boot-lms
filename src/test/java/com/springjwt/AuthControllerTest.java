@@ -30,25 +30,25 @@ public class AuthControllerTest {
     @Test
     public void testLoginSuccess() throws Exception {
         LoginRequest loginRequest = new LoginRequest();
-        loginRequest.setUsername("admin");
+        loginRequest.setPhone("0900000000");
         loginRequest.setPassword("admin");
 
-        mockMvc.perform(post("/api/auth/signin")
+        mockMvc.perform(post("/api/auth/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.token").isNotEmpty());
+                .andExpect(jsonPath("$.data.accessToken").isNotEmpty());
     }
 
     @Test
     public void testLoginFailure() throws Exception {
         LoginRequest loginRequest = new LoginRequest();
-        loginRequest.setUsername("invalidUser");
+        loginRequest.setPhone("0999999999");
         loginRequest.setPassword("invalidPassword");
 
-        mockMvc.perform(post("/api/auth/signin")
+        mockMvc.perform(post("/api/auth/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
     }
 }

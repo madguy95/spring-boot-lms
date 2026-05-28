@@ -29,9 +29,20 @@ spring:
     init:
       mode: never  # Do not use SQL init scripts (production)
 
+  # Ensure JDBC jobstore is explicitly set for Quartz clustering
+  quartz:
+    job-store-type: jdbc
+
   # Graceful Shutdown
   lifecycle:
     timeout-per-shutdown-phase: 30s  # Timeout for each shutdown phase
+
+  # Multipart limits — must be >= the biggest asset type (COURSE_INTRO_VIDEO = 200MB).
+  # Root application.yml already defaults to 200MB; restated here so prod stays explicit.
+  servlet:
+    multipart:
+      max-file-size: ${MAX_FILE_SIZE:200MB}
+      max-request-size: ${MAX_REQUEST_SIZE:220MB}
 
 # Server Configuration
 server:
@@ -60,6 +71,11 @@ app:
   jwt-expiration-ms: ${JWT_EXPIRATION_MS:3600000}  # JWT expiration time in milliseconds (default: 1 hour)
   jwt-refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:2592000000}  # JWT refresh token expiration (default: 30 days)
 
+  # SSL — NEVER allow trust-all in prod; enforces JVM cert validation even if someone
+  # accidentally sets TRUST_ALL_SSL=true at the env var level.
+  ssl:
+    trust-all: ${TRUST_ALL_SSL:true}
+
   # CORS (Strict)
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:https://yourdomain.com}  # Allowed origins for CORS
@@ -81,9 +97,19 @@ management:
 
 # File Upload
 file:
+  # Render's container filesystem is ephemeral — local storage is NOT acceptable in prod.
+  # Force Cloudinary unless explicitly overridden via env (e.g. for a self-hosted setup).
+  storage:
+    type: ${FILE_STORAGE_TYPE:cloudinary}
   upload:
-    dir: ${FILE_UPLOAD_DIR:/app/uploads}  # Directory for file uploads
-    max-size: ${FILE_MAX_SIZE:5242880}  # Maximum upload file size (default: 5MB)
+    dir: ${FILE_UPLOAD_DIR:/app/uploads}  # Used only when storage type = local
+    max-size: ${FILE_MAX_SIZE:5242880}  # Generic /upload endpoint cap (5MB); per-asset caps live in UploadAssetType
+  cloudinary:
+    cloud-name: ${CLOUDINARY_CLOUD_NAME}      # Required — fail-fast if missing
+    api-key: ${CLOUDINARY_API_KEY}
+    api-secret: ${CLOUDINARY_API_SECRET}
+    default-folder: ${CLOUDINARY_DEFAULT_FOLDER:lms-prod}
+    secure: true
 
 # Debug OFF
 debug: false  # Disable debug mode

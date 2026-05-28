@@ -29,6 +29,11 @@ public class SignupRequest {
     @Schema(description = "Email address", example = "newuser@example.com")
     private String email;
 
+    @NotBlank(message = "validation.phone.required")
+    @Size(max = 20, message = "validation.phone.size")
+    @Schema(description = "Phone number", example = "0901234567")
+    private String phone;
+
     @Schema(description = "User roles", example = "[\"user\", \"admin\"]")
     private Set<String> roles;
 

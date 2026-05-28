@@ -1,0 +1,43 @@
+# Keep the Docker build context tiny — anything not needed inside the image stays out so
+# `COPY . .` style mistakes can't leak local artifacts and so layer cache invalidates less often.
+
+# Gradle build outputs (rebuilt inside the image)
+.gradle/
+build/
+
+# IDE
+.idea/
+*.iml
+*.iws
+.vscode/
+out/
+
+# Local OS junk
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Local file storage (when storage type = local)
+uploads/
+uploads-*/
+
+# Environment files — never bake into images, must come from runtime env vars
+.env
+.env.*
+*.local
+
+# Tests aren't needed in the image (CI runs them separately)
+src/test/
+
+# Docs
+README.md
+*.md
+
+# Postman / dev tooling
+postman/
+
+# Compose files belong at the orchestration layer, not inside the image
+docker-compose*.yml

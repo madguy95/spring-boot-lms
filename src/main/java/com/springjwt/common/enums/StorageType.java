@@ -4,5 +4,6 @@ public enum StorageType {
     LOCAL,
     S3,
     AZURE,
-    GOOGLE_CLOUD
+    GOOGLE_CLOUD,
+    CLOUDINARY
 }

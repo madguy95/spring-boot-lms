@@ -38,7 +38,7 @@ dependencies {
 
     // ===== Database Migration =====
     implementation 'org.flywaydb:flyway-core:10.21.0'  // Latest stable
-    implementation 'org.flywaydb:flyway-mysql:10.21.0'  // MySQL-specific support
+    implementation 'org.flywaydb:flyway-database-postgresql:10.21.0'  // PostgreSQL-specific support
 
     // ===== Redis Connection Pool =====
     implementation 'org.apache.commons:commons-pool2:2.12.0'  // Required for Lettuce connection pooling
@@ -50,8 +50,8 @@ dependencies {
     implementation 'org.springframework.security:spring-security-messaging'
 
     // ===== Database Drivers =====
-    // MySQL 8.4+ (latest GA)
-    runtimeOnly 'com.mysql:mysql-connector-j:9.1.0'  // Latest (Dec 2024)
+    // PostgreSQL JDBC Driver
+    runtimeOnly 'org.postgresql:postgresql:42.7.11'
 
     // Oracle (if needed)
     runtimeOnly 'com.oracle.database.jdbc:ojdbc11:23.6.0.24.10'  // Latest
@@ -64,6 +64,9 @@ dependencies {
     // ===== Apache Commons =====
     implementation 'commons-io:commons-io:2.18.0'  // Latest (Dec 2024)
     implementation 'org.apache.commons:commons-lang3:3.18.0'  // Latest (Nov 2024)
+
+    // ===== Cloudinary (file/image/video CDN) =====
+    implementation 'com.cloudinary:cloudinary-http5:2.3.0'
 
     // ===== Lombok =====
     compileOnly 'org.projectlombok:lombok:1.18.36'  // Java 21 compatible

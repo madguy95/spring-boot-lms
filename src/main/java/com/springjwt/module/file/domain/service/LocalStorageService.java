@@ -1,9 +1,11 @@
 package com.springjwt.module.file.domain.service;
 
+import com.springjwt.common.enums.StorageType;
 import com.springjwt.common.exception.AppException;
 import com.springjwt.common.exception.BadRequestException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,7 @@ import java.util.UUID;
 
 @Service
 @Slf4j
+@ConditionalOnProperty(prefix = "file.storage", name = "type", havingValue = "local", matchIfMissing = true)
 public class LocalStorageService implements FileStorageService {
 
     private final Path rootLocation;
@@ -37,7 +40,7 @@ public class LocalStorageService implements FileStorageService {
     }
 
     @Override
-    public String store(MultipartFile file, String folder) {
+    public StoredFile store(MultipartFile file, String folder) {
         if (file.isEmpty()) {
             throw new BadRequestException("Failed to store empty file");
         }
@@ -65,8 +68,9 @@ public class LocalStorageService implements FileStorageService {
 
             Files.copy(file.getInputStream(), destinationFile, StandardCopyOption.REPLACE_EXISTING);
 
-            log.info("File stored successfully: {}", storedName);
-            return folder != null ? folder + "/" + storedName : storedName;
+            String finalName = (folder != null && !folder.isBlank()) ? folder + "/" + storedName : storedName;
+            log.info("File stored successfully: {}", finalName);
+            return new StoredFile(finalName, generateAccessUrl(finalName), StorageType.LOCAL);
 
         } catch (IOException e) {
             throw new AppException("Failed to store file", e);
@@ -114,5 +118,9 @@ public class LocalStorageService implements FileStorageService {
         Path file = rootLocation.resolve(filename).normalize();
         return Files.exists(file);
     }
-}
 
+    @Override
+    public StorageType getStorageType() {
+        return StorageType.LOCAL;
+    }
+}

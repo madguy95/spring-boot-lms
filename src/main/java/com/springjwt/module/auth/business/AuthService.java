@@ -33,7 +33,7 @@ public class AuthService {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            loginRequest.getUsername(),
+                            loginRequest.getPhone(),
                             loginRequest.getPassword()
                     )
             );
@@ -47,7 +47,7 @@ public class AuthService {
                     .map(GrantedAuthority::getAuthority)
                     .toList();
 
-            log.info("User authenticated successfully: {}", loginRequest.getUsername());
+            log.info("User authenticated successfully by phone: {}", loginRequest.getPhone());
             return new LoginResponse(
                     jwt,
                     refreshToken,
@@ -55,8 +55,8 @@ public class AuthService {
             );
 
         } catch (BadCredentialsException e) {
-            log.error("Authentication failed for user: {}", loginRequest.getUsername());
-            throw new BadCredentialsException("Invalid username or password");
+            log.error("Authentication failed for phone: {}", loginRequest.getPhone());
+            throw new BadCredentialsException("Invalid phone or password");
         }
     }
 
@@ -70,8 +70,8 @@ public class AuthService {
             throw new BadCredentialsException("Invalid or expired refresh token");
         }
 
-        String username = jwtUtils.getUserNameFromJwtToken(refreshToken);
-        UserPrincipal userDetails = (UserPrincipal) userDetailsService.loadUserByUsername(username);
+        String principalKey = jwtUtils.getPrincipalKeyFromJwtToken(refreshToken);
+        UserPrincipal userDetails = (UserPrincipal) userDetailsService.loadUserByUsername(principalKey);
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 userDetails, null, userDetails.getAuthorities());
@@ -79,7 +79,7 @@ public class AuthService {
         String newAccessToken = jwtUtils.generateJwtToken(authentication);
         String newRefreshToken = jwtUtils.generateJwtRefreshToken(authentication);
 
-        log.info("Token refreshed successfully for user: {}", username);
+        log.info("Token refreshed successfully for principal: {}", principalKey);
         return new RefreshTokenResponse(newAccessToken, newRefreshToken);
     }
 

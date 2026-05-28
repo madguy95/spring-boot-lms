@@ -7,24 +7,25 @@
 -- ========================================
 
 -- Insert default roles
-INSERT INTO roles(name) VALUES('ROLE_USER')
-ON DUPLICATE KEY UPDATE name=name;
+INSERT INTO roles(name) VALUES('ROLE_PARENT')
+ON CONFLICT (name) DO NOTHING;
 
-INSERT INTO roles(name) VALUES('ROLE_MODERATOR')
-ON DUPLICATE KEY UPDATE name=name;
+INSERT INTO roles(name) VALUES('ROLE_TEACHER')
+ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO roles(name) VALUES('ROLE_ADMIN')
-ON DUPLICATE KEY UPDATE name=name;
+ON CONFLICT (name) DO NOTHING;
 
 -- Insert default admin user (password: admin)
-INSERT INTO users(username, email, password)
-VALUES('admin', 'admin@example.com', '$2a$10$HvpzVKWTLIfxOYDoTA2EiOGmIuh4aOPjAtqlF/OKyMymr5hxKYKQG')
-ON DUPLICATE KEY UPDATE email=email;
+INSERT INTO users(username, email, phone, password)
+VALUES('admin', 'admin@example.com', '0900000000', '$2a$10$HvpzVKWTLIfxOYDoTA2EiOGmIuh4aOPjAtqlF/OKyMymr5hxKYKQG')
+ON CONFLICT DO NOTHING;
 
 -- Assign all roles to admin user
 INSERT INTO user_roles(user_id, role_id)
 SELECT u.id as user_id, r.id as role_id
-FROM users u, roles r
+FROM users u
+JOIN roles r ON r.name IN ('ROLE_PARENT', 'ROLE_TEACHER', 'ROLE_ADMIN')
 WHERE u.username = 'admin'
-ON DUPLICATE KEY UPDATE user_id=user_id;
+ON CONFLICT DO NOTHING;
 

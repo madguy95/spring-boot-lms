@@ -6,12 +6,12 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-@Schema(description = "Login request with username and password")
+@Schema(description = "Login request with phone and password")
 public class LoginRequest {
-    @NotBlank(message = "validation.username.required")
+    @NotBlank(message = "validation.phone.required")
     @StrProc
-    @Schema(description = "Username for authentication", example = "admin")
-    private String username;
+    @Schema(description = "Phone for authentication", example = "0901234567")
+    private String phone;
 
     @NotBlank(message = "validation.password.required")
     @StrProc

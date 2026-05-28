@@ -38,6 +38,13 @@ public class QuartzThreadPool implements ThreadPool {
     @SuppressWarnings("unused")
     private int threadCount = -1;
 
+    // Quartz compatibility properties (ignored – virtual threads handle these automatically)
+    @SuppressWarnings("unused")
+    private int threadPriority = Thread.NORM_PRIORITY;
+
+    @SuppressWarnings("unused")
+    private boolean threadsInheritContextClassLoaderOfInitializingThread = true;
+
     @Override
     public void initialize() throws SchedulerConfigException {
         log.info("Initializing Virtual Thread Pool for Quartz Scheduler");
@@ -145,6 +152,38 @@ public class QuartzThreadPool implements ThreadPool {
      */
     public int getThreadCount() {
         return threadCount;
+    }
+
+    /**
+     * Setter for threadPriority (for Quartz compatibility).
+     * Virtual threads do not support priority – this value is ignored.
+     */
+    public void setThreadPriority(int priority) {
+        this.threadPriority = priority;
+        log.debug("threadPriority set to: {} (ignored – using virtual threads)", priority);
+    }
+
+    /**
+     * Getter for threadPriority (for Quartz compatibility).
+     */
+    public int getThreadPriority() {
+        return threadPriority;
+    }
+
+    /**
+     * Setter for threadsInheritContextClassLoader (for Quartz compatibility).
+     * Virtual threads inherit context class loader by default – this value is ignored.
+     */
+    public void setThreadsInheritContextClassLoaderOfInitializingThread(boolean inherit) {
+        this.threadsInheritContextClassLoaderOfInitializingThread = inherit;
+        log.debug("threadsInheritContextClassLoaderOfInitializingThread set to: {} (ignored – using virtual threads)", inherit);
+    }
+
+    /**
+     * Getter for threadsInheritContextClassLoader (for Quartz compatibility).
+     */
+    public boolean isThreadsInheritContextClassLoaderOfInitializingThread() {
+        return threadsInheritContextClassLoaderOfInitializingThread;
     }
 
     /**

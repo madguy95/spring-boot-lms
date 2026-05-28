@@ -1,11 +1,12 @@
 package com.springjwt.module.file.business.impl;
 
-import com.springjwt.common.enums.StorageType;
 import com.springjwt.common.exception.BadRequestException;
 import com.springjwt.module.file.business.FileService;
 import com.springjwt.module.file.domain.entity.FileEntity;
 import com.springjwt.module.file.domain.service.FileDomainService;
 import com.springjwt.module.file.domain.service.FileStorageService;
+import com.springjwt.module.file.domain.service.StoredFile;
+import com.springjwt.module.file.model.UploadAssetType;
 import com.springjwt.module.file.model.dto.FileDto;
 import com.springjwt.module.file.model.response.FileUploadResponse;
 import lombok.RequiredArgsConstructor;
@@ -36,36 +37,15 @@ public class FileServiceImpl implements FileService {
     @Override
     @Transactional
     public FileUploadResponse uploadFile(MultipartFile file, String folder) {
-        validateFile(file);
+        validateGeneric(file);
+        return persistAndRespond(file, folder);
+    }
 
-        String storedName = fileStorageService.store(file, folder);
-        String accessUrl = fileStorageService.generateAccessUrl(storedName);
-
-        FileEntity fileEntity = FileEntity.builder()
-                .originalName(file.getOriginalFilename())
-                .storedName(storedName)
-                .filePath(storedName)
-                .fileSize(file.getSize())
-                .contentType(file.getContentType())
-                .storageType(StorageType.LOCAL)
-                .accessUrl(accessUrl)
-                .folder(folder)
-                .isDeleted(false)
-                .build();
-
-        FileEntity savedFile = fileDomainService.save(fileEntity);
-        log.info("File uploaded successfully: {}", savedFile.getOriginalName());
-
-        return FileUploadResponse.builder()
-                .id(savedFile.getId())
-                .originalName(savedFile.getOriginalName())
-                .storedName(savedFile.getStoredName())
-                .fileSize(savedFile.getFileSize())
-                .contentType(savedFile.getContentType())
-                .storageType(savedFile.getStorageType())
-                .accessUrl(savedFile.getAccessUrl())
-                .message("File uploaded successfully")
-                .build();
+    @Override
+    @Transactional
+    public FileUploadResponse uploadAsset(MultipartFile file, UploadAssetType assetType) {
+        validateForAsset(file, assetType);
+        return persistAndRespond(file, assetType.getFolder());
     }
 
     @Override
@@ -86,35 +66,91 @@ public class FileServiceImpl implements FileService {
     public void deleteFile(Long id) {
         FileEntity fileEntity = fileDomainService.findById(id);
 
-        // Delete from storage
         fileStorageService.delete(fileEntity.getStoredName());
-
-        // Soft delete from database
         fileDomainService.softDelete(id);
 
         log.info("File deleted successfully: {}", id);
     }
 
-    private void validateFile(MultipartFile file) {
-        if (file.isEmpty()) {
-            throw new BadRequestException("File is empty");
-        }
+    private FileUploadResponse persistAndRespond(MultipartFile file, String folder) {
+        StoredFile stored = fileStorageService.store(file, folder);
+
+        FileEntity fileEntity = FileEntity.builder()
+                .originalName(file.getOriginalFilename())
+                .storedName(stored.storedName())
+                .filePath(stored.storedName())
+                .fileSize(file.getSize())
+                .contentType(file.getContentType())
+                .storageType(stored.storageType())
+                .accessUrl(stored.accessUrl())
+                .folder(folder)
+                .isDeleted(false)
+                .build();
+
+        FileEntity savedFile = fileDomainService.save(fileEntity);
+        log.info("File uploaded successfully: {} -> {}", savedFile.getOriginalName(), stored.accessUrl());
+
+        return FileUploadResponse.builder()
+                .id(savedFile.getId())
+                .originalName(savedFile.getOriginalName())
+                .storedName(savedFile.getStoredName())
+                .fileSize(savedFile.getFileSize())
+                .contentType(savedFile.getContentType())
+                .storageType(savedFile.getStorageType())
+                .accessUrl(savedFile.getAccessUrl())
+                .message("File uploaded successfully")
+                .build();
+    }
+
+    private void validateGeneric(MultipartFile file) {
+        ensureNotEmpty(file);
 
         if (file.getSize() > maxFileSize) {
             throw new BadRequestException("File size exceeds maximum allowed size: " + maxFileSize + " bytes");
         }
 
+        String extension = extractExtension(file);
+        List<String> allowedExtensions = Arrays.asList(allowedTypes.split(","));
+        if (!allowedExtensions.contains(extension)) {
+            throw new BadRequestException("File type not allowed. Allowed types: " + allowedTypes);
+        }
+    }
+
+    private void validateForAsset(MultipartFile file, UploadAssetType assetType) {
+        ensureNotEmpty(file);
+
+        if (file.getSize() > assetType.getMaxSizeBytes()) {
+            throw new BadRequestException(String.format(
+                    "%s exceeds maximum size of %d bytes",
+                    assetType.name(), assetType.getMaxSizeBytes()));
+        }
+
+        String extension = extractExtension(file);
+        if (!assetType.isExtensionAllowed(extension)) {
+            throw new BadRequestException(String.format(
+                    "Extension '%s' not allowed for %s. Allowed: %s",
+                    extension, assetType.name(), assetType.allowedExtensionsCsv()));
+        }
+
+        if (!assetType.isContentTypeAllowed(file.getContentType())) {
+            throw new BadRequestException(String.format(
+                    "Content type '%s' not allowed for %s",
+                    file.getContentType(), assetType.name()));
+        }
+    }
+
+    private void ensureNotEmpty(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new BadRequestException("File is empty");
+        }
+    }
+
+    private String extractExtension(MultipartFile file) {
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null || !originalFilename.contains(".")) {
             throw new BadRequestException("Invalid file name");
         }
-
-        String extension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();
-        List<String> allowedExtensions = Arrays.asList(allowedTypes.split(","));
-
-        if (!allowedExtensions.contains(extension)) {
-            throw new BadRequestException("File type not allowed. Allowed types: " + allowedTypes);
-        }
+        return originalFilename.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();
     }
 
     private FileDto mapToDto(FileEntity entity) {
@@ -133,4 +169,3 @@ public class FileServiceImpl implements FileService {
                 .build();
     }
 }
-

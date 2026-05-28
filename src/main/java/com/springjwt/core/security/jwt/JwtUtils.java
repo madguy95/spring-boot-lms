@@ -79,7 +79,7 @@ public class JwtUtils {
      */
     public String generateJwtToken(Authentication authentication) {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        return generateTokenForUser(userPrincipal.getUsername(), jwtExpirationMs, "access");
+        return generateTokenForUser(userPrincipal.getPhone(), userPrincipal.getUsername(), jwtExpirationMs, "access");
     }
 
     /**
@@ -87,11 +87,11 @@ public class JwtUtils {
      */
     public String generateJwtRefreshToken(Authentication authentication) {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        String refreshToken = generateTokenForUser(userPrincipal.getUsername(), jwtRefreshExpirationMs, "refresh");
+        String refreshToken = generateTokenForUser(userPrincipal.getPhone(), userPrincipal.getUsername(), jwtRefreshExpirationMs, "refresh");
 
         // Store refresh token in Redis with TTL (only if Redis is available)
         if (service != null) {
-            String key = REFRESH_TOKEN_PREFIX + userPrincipal.getUsername();
+            String key = REFRESH_TOKEN_PREFIX + userPrincipal.getPhone();
             service.setValue(key, refreshToken, TimeUnit.MILLISECONDS, jwtRefreshExpirationMs, false);
         } else {
             log.warn("RedisService not available. Refresh token not stored in cache.");
@@ -103,9 +103,10 @@ public class JwtUtils {
     /**
      * Optimized: Common token generation logic to reduce code duplication
      */
-    private String generateTokenForUser(String username, long expirationMs, String tokenType) {
-        String hash = getHash(username);
+    private String generateTokenForUser(String phone, String username, long expirationMs, String tokenType) {
+        String hash = getHash(phone);
         Claims claims = Jwts.claims()
+                .add("phone", phone)
                 .add("username", username)
                 .add("hash", hash)
                 .add("type", tokenType)
@@ -113,7 +114,7 @@ public class JwtUtils {
 
         Date now = new Date();
         return Jwts.builder()
-                .subject(username)
+                .subject(phone)
                 .claims(claims)
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + expirationMs))
@@ -121,9 +122,29 @@ public class JwtUtils {
                 .compact();
     }
 
+    public String getPrincipalKeyFromJwtToken(String token) {
+        Claims claims = Jwts.parser().verifyWith(SECRET_KEY)
+                .build().parseSignedClaims(token).getPayload();
+        return extractPrincipalKey(claims);
+    }
+
     public String getUserNameFromJwtToken(String token) {
-        return (String) Jwts.parser().verifyWith(SECRET_KEY)
-                .build().parseSignedClaims(token).getPayload().get("username");
+        // Backward-compatible method name; now returns principal key (phone-first).
+        return getPrincipalKeyFromJwtToken(token);
+    }
+
+    private String extractPrincipalKey(Claims claims) {
+        Object phone = claims.get("phone");
+        if (phone instanceof String phoneValue && StringUtils.hasText(phoneValue)) {
+            return phoneValue;
+        }
+
+        Object username = claims.get("username");
+        if (username instanceof String usernameValue && StringUtils.hasText(usernameValue)) {
+            return usernameValue;
+        }
+
+        return claims.getSubject();
     }
 
     /**
@@ -139,8 +160,8 @@ public class JwtUtils {
             Claims claims = Jwts.parser().verifyWith(SECRET_KEY)
                     .build().parseSignedClaims(token).getPayload();
 
-            if (claims != null && claims.containsKey("username") && claims.containsKey("hash")) {
-                String username = claims.get("username").toString();
+            if (claims != null && claims.containsKey("hash")) {
+                String principalKey = extractPrincipalKey(claims);
                 String hash = claims.get("hash").toString();
 
                 LocalDateTime now = LocalDateTime.now();
@@ -148,11 +169,16 @@ public class JwtUtils {
                         claims.getExpiration().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
 
                 // Store revoked token with prefix
-                String key = String.format("%s%s_%s", REVOKED_TOKEN_PREFIX, username, hash);
+                String key = String.format("%s%s_%s", REVOKED_TOKEN_PREFIX, principalKey, hash);
                 service.setValue(key, auth.getPrincipal(), TimeUnit.SECONDS, aliveTime.getSeconds(), true);
 
                 // Also invalidate refresh token
-                service.removeKey(REFRESH_TOKEN_PREFIX + username);
+                service.removeKey(REFRESH_TOKEN_PREFIX + principalKey);
+                Object usernameClaim = claims.get("username");
+                if (usernameClaim instanceof String usernameValue && StringUtils.hasText(usernameValue)
+                        && !usernameValue.equals(principalKey)) {
+                    service.removeKey(REFRESH_TOKEN_PREFIX + usernameValue);
+                }
                 return true;
             }
         } catch (Exception e) {
@@ -166,12 +192,12 @@ public class JwtUtils {
             Claims claims = Jwts.parser().verifyWith(SECRET_KEY)
                     .build().parseSignedClaims(authToken).getPayload();
 
-            if (claims != null && claims.containsKey("username") && claims.containsKey("hash")) {
+            if (claims != null && claims.containsKey("hash") && StringUtils.hasText(extractPrincipalKey(claims))) {
                 // Check revocation only if Redis is available
                 if (service != null) {
-                    String username = claims.get("username").toString();
+                    String principalKey = extractPrincipalKey(claims);
                     String hash = claims.get("hash").toString();
-                    String key = String.format("%s%s_%s", REVOKED_TOKEN_PREFIX, username, hash);
+                    String key = String.format("%s%s_%s", REVOKED_TOKEN_PREFIX, principalKey, hash);
 
                     if (service.getValue(key) != null) {
                         log.error("Token has been revoked");
@@ -206,7 +232,7 @@ public class JwtUtils {
             Claims claims = Jwts.parser().verifyWith(SECRET_KEY)
                     .build().parseSignedClaims(refreshToken).getPayload();
 
-            if (claims == null || !claims.containsKey("username") || !claims.containsKey("type")) {
+            if (claims == null || !claims.containsKey("type")) {
                 return false;
             }
 
@@ -216,18 +242,28 @@ public class JwtUtils {
                 return false;
             }
 
-            String username = claims.get("username").toString();
-            Object storedToken = service.getValue(REFRESH_TOKEN_PREFIX + username);
+            String principalKey = extractPrincipalKey(claims);
+            Object storedToken = service.getValue(REFRESH_TOKEN_PREFIX + principalKey);
+            if (refreshToken.equals(storedToken)) {
+                return true;
+            }
 
-            return refreshToken.equals(storedToken);
+            Object usernameClaim = claims.get("username");
+            if (usernameClaim instanceof String usernameValue && StringUtils.hasText(usernameValue)
+                    && !usernameValue.equals(principalKey)) {
+                Object legacyStoredToken = service.getValue(REFRESH_TOKEN_PREFIX + usernameValue);
+                return refreshToken.equals(legacyStoredToken);
+            }
+
+            return false;
         } catch (Exception ex) {
             log.error("Invalid refresh token: {}", ex.getMessage());
         }
         return false;
     }
 
-    public String getHash(String username) {
-        return DigestUtils.md5DigestAsHex(String.format("%s_%d", username, new Date().getTime()).getBytes());
+    public String getHash(String principalKey) {
+        return DigestUtils.md5DigestAsHex(String.format("%s_%d", principalKey, new Date().getTime()).getBytes());
     }
 }
 

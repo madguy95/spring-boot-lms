@@ -33,7 +33,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/")
-    @Operation(summary = "User sign in", description = "Authenticate user with username and password. Returns access token and refresh token.")
+    @Operation(summary = "User sign in", description = "Authenticate user with phone and password. Returns access token and refresh token.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully authenticated", content = @Content(schema = @Schema(implementation = LoginResponse.class))),
             @ApiResponse(responseCode = "400", description = "Invalid credentials"),
@@ -44,7 +44,7 @@ public class AuthController {
             LoginResponse response = authService.authenticateUser(loginRequest);
             return ResponseFactory.success(response);
         } catch (BadCredentialsException e) {
-            return ResponseFactory.error(HttpStatus.BAD_REQUEST, "Invalid username or password");
+            return ResponseFactory.error(HttpStatus.BAD_REQUEST, "Invalid phone or password");
         } catch (Exception e) {
             log.error("Authentication failed", e);
             return ResponseFactory.error(HttpStatus.INTERNAL_SERVER_ERROR, "Authentication failed");

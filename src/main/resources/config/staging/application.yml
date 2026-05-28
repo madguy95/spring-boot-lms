@@ -28,6 +28,16 @@ spring:
     init:
       mode: never  # Disable SQL init scripts, use Flyway instead
 
+  # Ensure JDBC jobstore is explicitly set for Quartz clustering
+  quartz:
+    job-store-type: jdbc
+
+  # Multipart limits — match prod so staging exercises the same upload paths (intro video up to 200MB).
+  servlet:
+    multipart:
+      max-file-size: ${MAX_FILE_SIZE:200MB}
+      max-request-size: ${MAX_REQUEST_SIZE:220MB}
+
 # Server Configuration
 server:
   port: ${SERVER_PORT:8080}  # Server port (default: 8080)
@@ -47,6 +57,11 @@ app:
   jwt-secret: ${JWT_SECRET:staging-secret-replace-in-production}  # Secret key for JWT signing (staging)
   jwt-expiration-ms: ${JWT_EXPIRATION_MS:7200000}  # JWT expiration time in milliseconds (2 hours)
   jwt-refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}  # JWT refresh token expiration (7 days)
+
+  # SSL — staging mirrors prod: never trust-all certs. Override via TRUST_ALL_SSL=true only on
+  # a local machine where a corporate proxy is intercepting TLS.
+  ssl:
+    trust-all: false
 
   # CORS
   cors:
@@ -71,9 +86,19 @@ management:
 
 # File Upload
 file:
+  # Staging uses Cloudinary by default to match prod's upload behavior — local disk is ephemeral
+  # on containerized deploys and would break parity testing.
+  storage:
+    type: ${FILE_STORAGE_TYPE:cloudinary}
   upload:
-    dir: ${FILE_UPLOAD_DIR:/app/uploads-staging}  # Directory for file uploads in staging
-    max-size: ${FILE_MAX_SIZE:10485760}  # Maximum upload file size (10MB)
+    dir: ${FILE_UPLOAD_DIR:/app/uploads-staging}  # Used only when storage type = local
+    max-size: ${FILE_MAX_SIZE:10485760}  # Generic /upload cap (10MB); per-asset caps live in UploadAssetType
+  cloudinary:
+    cloud-name: ${CLOUDINARY_CLOUD_NAME}      # Required when storage type = cloudinary
+    api-key: ${CLOUDINARY_API_KEY}
+    api-secret: ${CLOUDINARY_API_SECRET}
+    default-folder: ${CLOUDINARY_DEFAULT_FOLDER:lms-staging}
+    secure: true
 
 # Debug
 debug: false  # Disable debug mode

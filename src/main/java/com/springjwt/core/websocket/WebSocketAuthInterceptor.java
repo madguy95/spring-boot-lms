@@ -29,8 +29,8 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
         if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) { // Authenticate with connect message request
             String accessToken = jwtUtils.parseJwt(accessor);
             if (accessToken != null) {
-                String username = jwtUtils.getUserNameFromJwtToken(accessToken);
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                String principalKey = jwtUtils.getPrincipalKeyFromJwtToken(accessToken);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(principalKey);
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);

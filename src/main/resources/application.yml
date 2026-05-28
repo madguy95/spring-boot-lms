@@ -43,8 +43,8 @@ spring:
   servlet:
     multipart:
       enabled: true  # Enable multipart file uploads
-      max-file-size: ${MAX_FILE_SIZE:10MB}  # Maximum file size for uploads
-      max-request-size: ${MAX_REQUEST_SIZE:10MB}  # Maximum request size for uploads
+      max-file-size: ${MAX_FILE_SIZE:200MB}  # Must be >= COURSE_INTRO_VIDEO max (200MB)
+      max-request-size: ${MAX_REQUEST_SIZE:220MB}  # Slight headroom over max-file-size
 
   datasource:
     # HikariCP Connection Pool Configuration (recommended for production)
@@ -66,17 +66,25 @@ app:
   timezone: UTC  # Application timezone (UTC only)
 
   # JWT Configuration
-  jwtSecret: ${JWT_SECRET:3cfa76ef14937c1c0ea519f8fc057a80fcd04a7420f8e8bcd0a7567c272e007b}  # Secret key for JWT signing
+  # The default below is a clearly-labeled dev placeholder. Set JWT_SECRET env var in every non-local
+  # environment to a strong random value:  openssl rand -hex 32
+  jwtSecret: ${JWT_SECRET:dev-only-jwt-secret-replace-me-in-env-not-for-production-use}
   jwtExpirationMs: ${JWT_EXPIRATION_MS:86400000}  # JWT expiration time in milliseconds
   jwtRefreshExpirationMs: ${JWT_REFRESH_EXPIRATION_MS:604800000}  # JWT refresh token expiration in milliseconds
 
+  # Security defaults
+  security:
+    # Default temporary password assigned to newly created users (admin should rotate after first login).
+    # Override via TEMP_PASSWORD env var in any non-local environment.
+    temp-password: ${TEMP_PASSWORD:DevTempPwd@change-me-1}
+
   # Enable/Disable components (set to false to disable)
   redis:
-    enabled: ${REDIS_ENABLED:true}  # Enable Redis integration (true/false)
+    enabled: ${REDIS_ENABLED:false}  # Enable Redis integration (true/false)
   kafka:
-    enabled: ${KAFKA_ENABLED:true}  # Enable Kafka integration (true/false)
+    enabled: ${KAFKA_ENABLED:false}  # Enable Kafka integration (true/false)
   quartz:
-    enabled: ${QUARTZ_ENABLED:true}  # Enable Quartz scheduler (true/false)
+    enabled: ${QUARTZ_ENABLED:false}  # Enable Quartz scheduler (true/false)
 
 # ========================================
 # SPRING COMMON SETTINGS
@@ -87,10 +95,18 @@ app:
 # FILE UPLOAD CONFIGURATION
 # ========================================
 file:
+  storage:
+    type: ${FILE_STORAGE_TYPE:local}  # Backend selector: local | cloudinary
   upload:
-    dir: ${FILE_UPLOAD_DIR:uploads}  # Directory for file uploads
-    max-size: ${FILE_MAX_SIZE:10485760}  # Maximum upload file size in bytes (default: 10MB)
-    allowed-types: ${FILE_ALLOWED_TYPES:jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx,txt,zip}  # Allowed file types for upload
+    dir: ${FILE_UPLOAD_DIR:uploads}  # Directory for file uploads (local backend only)
+    max-size: ${FILE_MAX_SIZE:10485760}  # Maximum upload file size in bytes for generic /upload (default: 10MB)
+    allowed-types: ${FILE_ALLOWED_TYPES:jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx,txt,zip}  # Allowed file types for generic /upload endpoint
+  cloudinary:
+    cloud-name: ${CLOUDINARY_CLOUD_NAME:}  # Cloudinary cloud name (required when type=cloudinary)
+    api-key: ${CLOUDINARY_API_KEY:}        # Cloudinary API key
+    api-secret: ${CLOUDINARY_API_SECRET:}  # Cloudinary API secret
+    default-folder: ${CLOUDINARY_DEFAULT_FOLDER:lms}  # Root folder under which all assets live
+    secure: ${CLOUDINARY_SECURE:true}      # Use https URLs
 
 # ========================================
 # ACTUATOR CONFIGURATION

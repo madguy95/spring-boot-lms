@@ -5,15 +5,18 @@
 # Spring Datasource Configuration
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/redis_jwt?serverTimezone=UTC&createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false  # JDBC URL for local MySQL database
-    username: ${DB_USERNAME:root}  # Database username (default: root)
-    password: ${DB_PASSWORD:123456}  # Database password (default: 123456)
+    # Local dev defaults (safe to commit). Override via env vars (.env / shell) to point at a remote DB.
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/lms}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver  # Explicit PostgreSQL JDBC driver
     hikari:
       minimum-idle: 2  # Minimum number of idle connections in the pool
       maximum-pool-size: 10  # Maximum number of connections in the pool
 
   # Flyway Configuration (Dev-specific overrides)
   flyway:
+    enabled: true  # Flyway is the schema source of truth for PostgreSQL in dev
     baseline-on-migrate: true  # Allow baseline on existing database (dev only)
     baseline-version: 0  # Baseline version for migrations
 
@@ -26,6 +29,22 @@ spring:
   sql:
     init:
       mode: never  # Disable SQL init scripts, use Flyway instead
+
+  cache:
+    type: simple  # Temporary: disable Redis-backed cache in dev
+
+  quartz:
+    auto-startup: false  # Temporary: do not start Quartz scheduler in dev
+
+  # Multipart limits (must be >= the biggest asset we accept = intro video 200MB)
+  servlet:
+    multipart:
+      max-file-size: 200MB
+      max-request-size: 220MB
+
+kafka:
+  health:
+    enabled: false  # Temporary: disable Kafka health indicator/admin checks
 
 # Server Configuration
 server:
@@ -41,6 +60,13 @@ app:
   jwt-expiration-ms: 86400000  # JWT expiration time in milliseconds (24 hours)
   jwt-refresh-expiration-ms: 604800000  # JWT refresh token expiration (7 days)
 
+  redis:
+    enabled: false  # Temporary: disable Redis feature in dev
+  kafka:
+    enabled: false  # Temporary: disable Kafka feature in dev
+  quartz:
+    enabled: false  # Temporary: disable Quartz feature in dev
+
   # CORS
   cors:
     allowed-origins:
@@ -53,6 +79,11 @@ app:
     allow-credentials: true  # Allow credentials in CORS
     max-age: 3600  # Max age for CORS preflight requests
 
+  # DEV-ONLY workaround for corporate SSL-inspection proxies (Zscaler, Netskope, ...).
+  # When true, JVM accepts ANY TLS certificate — bypasses PKIX path failures without needing
+  # to import the proxy root CA into cacerts. NEVER enable outside local dev.
+  ssl:
+    trust-all: ${TRUST_ALL_SSL:true}
 # Actuator (show all in dev)
 management:
   endpoints:
@@ -65,9 +96,19 @@ management:
 
 # File Upload
 file:
+  storage:
+    type: ${FILE_STORAGE_TYPE:cloudinary}  # local | cloudinary
   upload:
-    dir: uploads-dev  # Directory for file uploads
-    max-size: 10485760  # Maximum upload file size (10MB)
+    dir: uploads-dev  # Directory for file uploads (used when storage type = local)
+    max-size: 10485760  # Maximum upload file size (10MB) for generic /upload endpoint
+  cloudinary:
+    # Cloudinary credentials MUST come from env vars (.env locally, Render env vars in prod).
+    # Empty defaults force misconfiguration to fail fast instead of silently uploading nowhere.
+    cloud-name: ${CLOUDINARY_CLOUD_NAME:}
+    api-key: ${CLOUDINARY_API_KEY:}
+    api-secret: ${CLOUDINARY_API_SECRET:}
+    default-folder: ${CLOUDINARY_DEFAULT_FOLDER:lms-dev}
+    secure: true
 
 # Debug
 debug: false  # Disable debug mode

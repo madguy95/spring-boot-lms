@@ -23,4 +23,10 @@ public class UserDomainService {
             throw new ValidationException(UserFields.EMAIL, "user.email.already.exists");
         }
     }
+
+    public void existsByPhone(String phone) {
+        if (userRepository.existsByPhone(phone)) {
+            throw new ValidationException(UserFields.PHONE, "user.phone.already.exists");
+        }
+    }
 }

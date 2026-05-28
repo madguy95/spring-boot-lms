@@ -32,28 +32,16 @@ public class UserServiceImpl implements UserService {
     public User registerUser(SignupRequest signUpRequest) {
         userDomainService.existsByEmail(signUpRequest.getEmail());
         userDomainService.existsByUsername(signUpRequest.getUsername());
+        userDomainService.existsByPhone(signUpRequest.getPhone());
         // Create new user's account
         User user = new User(signUpRequest.getUsername(),
                 signUpRequest.getEmail(),
+                signUpRequest.getPhone(),
                 encoder.encode(signUpRequest.getPassword()));
 
-        Set<String> strRoles = signUpRequest.getRoles();
         Set<Role> roles = new HashSet<>();
-
-        if (strRoles == null) {
-            Role userRole = roleDomainService.findByName(ERole.ROLE_USER);
-            roles.add(userRole);
-        } else {
-            strRoles.forEach(role -> {
-                ERole roleEnum = switch (role.toLowerCase()) {
-                    case "admin" -> ERole.ROLE_ADMIN;
-                    case "mod", "moderator" -> ERole.ROLE_MODERATOR;
-                    default -> ERole.ROLE_USER;
-                };
-                Role foundRole = roleDomainService.findByName(roleEnum);
-                roles.add(foundRole);
-            });
-        }
+        Role userRole = roleDomainService.findByName(ERole.ROLE_PARENT);
+        roles.add(userRole);
 
         user.setRoles(roles);
         return userRepository.save(user);
