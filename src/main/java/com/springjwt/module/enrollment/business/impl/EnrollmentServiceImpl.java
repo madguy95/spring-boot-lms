@@ -19,6 +19,7 @@ import com.springjwt.module.enrollment.model.request.CreateEnrollmentRequest;
 import com.springjwt.module.enrollment.model.request.EnrollmentListRequest;
 import com.springjwt.module.enrollment.model.request.RejectEnrollmentRequest;
 import com.springjwt.module.enrollment.model.request.UpdatePaymentRequest;
+import com.springjwt.module.enrollment.model.request.WorkshopSignupRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -79,6 +80,36 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                 .channel(request.getChannel() == null ? "parent_app" : request.getChannel())
                 .paymentAmount(request.getPaymentAmount())
                 .paymentStatus(normalize(request.getPaymentStatus()))
+                .submittedAt(Instant.now())
+                .build();
+
+        return toDto(enrollmentRepository.save(enrollment));
+    }
+
+    @Override
+    @Transactional
+    public EnrollmentDto createWorkshopSignup(WorkshopSignupRequest request) {
+        // The chosen class IS the workshop — we derive requestedCourseId from
+        // it so admins still see "pending enrollment for course X" in their
+        // queue. The intendedClass column preserves the parent's pick.
+        ClassEntity cls = classRepository.findById(request.getClassId())
+                .orElseThrow(() -> new AppException("enrollment.class.notFound", HttpStatus.NOT_FOUND));
+
+        Course course = cls.getCourse();
+        if (course == null) {
+            throw new AppException("enrollment.class.invalid", HttpStatus.BAD_REQUEST);
+        }
+
+        Enrollment enrollment = Enrollment.builder()
+                .studentName(request.getStudentName().trim())
+                .studentAge(request.getStudentAge())
+                .parentName(request.getParentName().trim())
+                .parentPhone(normalize(request.getParentPhone()))
+                .requestedCourse(course)
+                .intendedClass(cls)
+                .note(normalize(request.getNote()))
+                .status(STATUS_PENDING)
+                .channel("website_workshop")
                 .submittedAt(Instant.now())
                 .build();
 

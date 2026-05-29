@@ -81,6 +81,16 @@ public class FileController {
         return ApiResult.success(fileService.uploadAsset(file, UploadAssetType.COURSE_INTRO_VIDEO));
     }
 
+    @PostMapping(value = "/upload/blog-cover", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload blog post cover image",
+            description = "Upload a blog post cover image. Allowed: jpg/jpeg/png/webp, max 5MB.")
+    public ApiResult<FileUploadResponse> uploadBlogCover(
+            @Parameter(description = "Cover image", required = true)
+            @RequestParam("file") MultipartFile file) {
+        log.info("Upload blog-cover request: {}", file.getOriginalFilename());
+        return ApiResult.success(fileService.uploadAsset(file, UploadAssetType.BLOG_COVER));
+    }
+
     @GetMapping("/{filename:.+}")
     @Operation(summary = "Download file",
             description = "Download a file by filename. Only meaningful for LOCAL storage; for Cloudinary, use the accessUrl directly.")

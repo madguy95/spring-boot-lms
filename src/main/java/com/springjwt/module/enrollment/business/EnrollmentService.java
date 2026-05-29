@@ -9,6 +9,7 @@ import com.springjwt.module.enrollment.model.request.CreateEnrollmentRequest;
 import com.springjwt.module.enrollment.model.request.EnrollmentListRequest;
 import com.springjwt.module.enrollment.model.request.RejectEnrollmentRequest;
 import com.springjwt.module.enrollment.model.request.UpdatePaymentRequest;
+import com.springjwt.module.enrollment.model.request.WorkshopSignupRequest;
 import org.springframework.data.domain.Page;
 
 public interface EnrollmentService {
@@ -18,6 +19,13 @@ public interface EnrollmentService {
     EnrollmentDto getEnrollmentById(Long id);
 
     EnrollmentDto createEnrollment(CreateEnrollmentRequest request);
+
+    /**
+     * Guest workshop signup — no auth, called from the public blog detail page.
+     * Derives requestedCourseId from the chosen class and pins
+     * channel='website_workshop' so admins can triage.
+     */
+    EnrollmentDto createWorkshopSignup(WorkshopSignupRequest request);
 
     EnrollmentDto approveEnrollment(Long id, ApproveEnrollmentRequest request);
 

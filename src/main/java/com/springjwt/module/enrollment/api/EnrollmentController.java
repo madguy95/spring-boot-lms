@@ -13,6 +13,7 @@ import com.springjwt.module.enrollment.model.request.CreateEnrollmentRequest;
 import com.springjwt.module.enrollment.model.request.EnrollmentListRequest;
 import com.springjwt.module.enrollment.model.request.RejectEnrollmentRequest;
 import com.springjwt.module.enrollment.model.request.UpdatePaymentRequest;
+import com.springjwt.module.enrollment.model.request.WorkshopSignupRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -108,5 +109,19 @@ public class EnrollmentController {
     public ResponseEntity<ApiResult<BulkActionResultDto>> bulkAction(
             @Valid @RequestBody BulkActionRequest request) {
         return ResponseFactory.success(enrollmentService.bulkAction(request));
+    }
+
+    /**
+     * Guest workshop signup — no auth required. Whitelisted under
+     * {@code /api/public/**} in WebSecurityConfig.
+     */
+    @PostMapping("/public/enrollments/workshop-signup")
+    @Operation(summary = "Submit workshop signup as a guest",
+            description = "Lightweight registration form posted from the public blog detail page. "
+                    + "Captures parent + child basics + the chosen class; admin reviews like any other enrollment.")
+    public ResponseEntity<ApiResult<EnrollmentDto>> submitWorkshopSignup(
+            @Valid @RequestBody WorkshopSignupRequest request) {
+        EnrollmentDto created = enrollmentService.createWorkshopSignup(request);
+        return new ResponseEntity<>(ApiResult.success(created), HttpStatus.CREATED);
     }
 }

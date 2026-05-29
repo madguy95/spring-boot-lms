@@ -31,7 +31,13 @@ public enum UploadAssetType {
             "course-intro-videos",
             List.of("mp4", "mov", "webm", "mkv"),
             List.of("video/"),
-            200L * 1024 * 1024); // 200MB
+            200L * 1024 * 1024), // 200MB
+
+    BLOG_COVER(
+            "blog-covers",
+            List.of("jpg", "jpeg", "png", "webp"),
+            List.of("image/"),
+            5L * 1024 * 1024); // 5MB — matches the FE dropzone limit
 
     private final String folder;
     private final List<String> allowedExtensions;

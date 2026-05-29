@@ -55,6 +55,14 @@ public class Enrollment extends BaseEntity {
     @JoinColumn(name = "assigned_class_id")
     private ClassEntity assignedClass;
 
+    // Set by guests on the workshop quick-signup form to record which class
+    // they were looking at when they submitted. Separate from `assigned_class_id`
+    // so the admin's approval flow stays intact — they can confirm the same
+    // class or reroute to another one.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "intended_class_id")
+    private ClassEntity intendedClass;
+
     @Column(name = "note", columnDefinition = "TEXT")
     private String note;
 
