@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -78,4 +79,42 @@ public interface ClassRepository extends JpaRepository<ClassEntity, Long> {
 
     @Query("select count(c) from ClassEntity c where c.lifecycleStatus = 'published' and :today < c.startDate and c.enrolled < c.capacity")
     long countOpen(@Param("today") LocalDate today);
+
+    // Classes that overlap a given week window (Mon..Sun) — i.e. classes whose
+    // term covers any day inside it. We exclude `cancelled` so cancelled runs
+    // don't surface on the calendar; published + draft both render so admins
+    // can preview unpublished schedules before going live.
+    //
+    // `cast(:location as string)` is required because Hibernate binds a NULL
+    // String as PG `bytea` by default, which makes `lower(:location)` fail with
+    // "function lower(bytea) does not exist". Same pattern as `search()` above.
+    @EntityGraph(attributePaths = {"course", "teacher", "daySchedules"})
+    @Query("""
+            select distinct c from ClassEntity c
+            left join c.course co
+            left join c.teacher t
+            where c.lifecycleStatus <> 'cancelled'
+              and c.startDate <= :weekEnd
+              and c.endDate   >= :weekStart
+              and (:teacherId is null or t.id = :teacherId)
+              and (:classId   is null or c.id = :classId)
+              and (cast(:location as string) is null
+                   or lower(cast(c.location as string)) = lower(cast(:location as string))
+                   or lower(cast(coalesce(c.room, '') as string)) = lower(cast(:location as string)))
+            """)
+    List<ClassEntity> findActiveInWeek(@Param("weekStart") LocalDate weekStart,
+                                       @Param("weekEnd") LocalDate weekEnd,
+                                       @Param("teacherId") Long teacherId,
+                                       @Param("classId") Long classId,
+                                       @Param("location") String location);
+
+    // Active class list for filter chips on the schedule view — same exclusion
+    // of cancelled, no date narrowing so chips stay stable across week pages.
+    @EntityGraph(attributePaths = {"course", "teacher"})
+    @Query("""
+            select distinct c from ClassEntity c
+            where c.lifecycleStatus <> 'cancelled'
+            order by c.name asc
+            """)
+    List<ClassEntity> findSchedulableClasses();
 }

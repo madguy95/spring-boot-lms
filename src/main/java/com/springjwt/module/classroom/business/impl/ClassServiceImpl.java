@@ -14,6 +14,8 @@ import com.springjwt.module.classroom.model.request.DayScheduleInput;
 import com.springjwt.module.classroom.model.request.LifecycleActionRequest;
 import com.springjwt.module.classroom.model.request.UpdateClassRequest;
 import com.springjwt.module.course.domain.entity.Course;
+import com.springjwt.module.enrollment.domain.entity.Enrollment;
+import com.springjwt.module.enrollment.domain.repository.EnrollmentRepository;
 import com.springjwt.module.teacher.domain.entity.Teacher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -38,6 +40,7 @@ public class ClassServiceImpl implements ClassService {
     private final ClassRepository classRepository;
     private final ClassDomainService classDomainService;
     private final ClassLifecyclePolicy lifecyclePolicy;
+    private final EnrollmentRepository enrollmentRepository;
 
     @Override
     public Page<ClassDto> listClasses(ClassListRequest request) {
@@ -228,6 +231,30 @@ public class ClassServiceImpl implements ClassService {
                 .completed(completed)
                 .unpublished(unpublished)
                 .cancelled(cancelled)
+                .build();
+    }
+
+    @Override
+    public List<ClassStudentDto> getClassStudents(Long id) {
+        // Validate class exists so non-admins probing for ids see 404 rather than [].
+        classDomainService.getClassById(id);
+        return enrollmentRepository.findRosterByClassId(id).stream()
+                .map(this::toRosterDto)
+                .toList();
+    }
+
+    private ClassStudentDto toRosterDto(Enrollment e) {
+        return ClassStudentDto.builder()
+                .id(e.getId())
+                .classId(e.getAssignedClass() == null ? null : e.getAssignedClass().getId())
+                .name(e.getStudentName())
+                .initials(deriveInitials(e.getStudentName()))
+                .grade(e.getStudentGrade())
+                .age(e.getStudentAge())
+                // Attendance / behavioural status are not tracked yet — surface
+                // safe defaults so the FE roster row doesn't have to special-case nulls.
+                .attendance(0)
+                .status("on_track")
                 .build();
     }
 

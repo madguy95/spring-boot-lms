@@ -7,6 +7,7 @@ import com.springjwt.module.classroom.business.ClassService;
 import com.springjwt.module.classroom.model.dto.ClassDto;
 import com.springjwt.module.classroom.model.dto.ClassStatsDto;
 import com.springjwt.module.classroom.model.dto.ClassStatusTabsDto;
+import com.springjwt.module.classroom.model.dto.ClassStudentDto;
 import com.springjwt.module.classroom.model.request.ClassListRequest;
 import com.springjwt.module.classroom.model.request.CreateClassRequest;
 import com.springjwt.module.classroom.model.request.LifecycleActionRequest;
@@ -22,6 +23,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -72,6 +75,13 @@ public class ClassController {
             @PathVariable Long id,
             @Valid @RequestBody LifecycleActionRequest request) {
         return ResponseFactory.success(classService.applyLifecycleAction(id, request));
+    }
+
+    @GetMapping("/classes/{id}/students")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
+    @Operation(summary = "List students enrolled (active) in a class")
+    public ResponseEntity<ApiResult<List<ClassStudentDto>>> getClassStudents(@PathVariable Long id) {
+        return ResponseFactory.success(classService.getClassStudents(id));
     }
 
     @GetMapping("/classes/status-tabs")
