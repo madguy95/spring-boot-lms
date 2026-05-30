@@ -48,4 +48,8 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     long countByStatus(String status);
 
     long countByTool(String tool);
+
+    // Admin dashboard delta: how many courses became active in the window.
+    // Uses BaseEntity.createdAt so we don't need a separate audit table.
+    long countByStatusAndCreatedAtAfter(String status, java.time.Instant since);
 }

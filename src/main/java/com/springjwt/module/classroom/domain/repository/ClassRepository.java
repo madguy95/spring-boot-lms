@@ -80,6 +80,59 @@ public interface ClassRepository extends JpaRepository<ClassEntity, Long> {
     @Query("select count(c) from ClassEntity c where c.lifecycleStatus = 'published' and :today < c.startDate and c.enrolled < c.capacity")
     long countOpen(@Param("today") LocalDate today);
 
+    // Admin dashboard: classes ongoing today whose location string indicates
+    // they're delivered online. We compare lowercase to be tolerant of the
+    // master-data values ("Online", "online"). Anything else counts as offline.
+    @Query("""
+            select count(c) from ClassEntity c
+            where c.lifecycleStatus = 'published'
+              and :today >= c.startDate and :today <= c.endDate
+              and lower(cast(c.location as string)) = 'online'
+            """)
+    long countOngoingOnline(@Param("today") LocalDate today);
+
+    // Admin dashboard upcoming-classes feed: every class whose term covers
+    // today AND has a day_schedule landing on today's weekday. The day-key
+    // comparison ("Mon".."Sun") lives in the service.
+    @EntityGraph(attributePaths = {"course", "teacher", "daySchedules"})
+    @Query("""
+            select distinct c from ClassEntity c
+            join c.daySchedules ds
+            where c.lifecycleStatus = 'published'
+              and :today >= c.startDate and :today <= c.endDate
+              and ds.day = :dayKey
+            """)
+    List<ClassEntity> findRunningOnDay(@Param("today") LocalDate today,
+                                       @Param("dayKey") String dayKey);
+
+    // Admin dashboard fill-rate widget: enrolled/capacity aggregated per
+    // course across its ongoing classes. We left-join so courses with zero
+    // ongoing classes still appear (capacity falls back to per-course capacity
+    // in the service). The projection is positional Object[] to avoid a tiny
+    // single-use projection class.
+    @Query("""
+            select co.id, co.code, co.title,
+                   coalesce(sum(c.enrolled), 0), coalesce(sum(c.capacity), 0)
+            from com.springjwt.module.course.domain.entity.Course co
+            left join ClassEntity c
+                  on c.course = co
+                 and c.lifecycleStatus = 'published'
+                 and :today >= c.startDate and :today <= c.endDate
+            where co.status = 'published'
+            group by co.id, co.code, co.title
+            order by coalesce(sum(c.enrolled), 0) desc, co.title asc
+            """)
+    List<Object[]> findCourseFillTop(@Param("today") LocalDate today, Pageable pageable);
+
+    // Delta counter for the courses-running KPI: classes that started in the
+    // window. Used to compute "+5" style chips.
+    @Query("""
+            select count(c) from ClassEntity c
+            where c.lifecycleStatus = 'published'
+              and c.startDate >= :since and c.startDate <= :today
+            """)
+    long countStartedBetween(@Param("since") LocalDate since, @Param("today") LocalDate today);
+
     // Classes that overlap a given week window (Mon..Sun) — i.e. classes whose
     // term covers any day inside it. We exclude `cancelled` so cancelled runs
     // don't surface on the calendar; published + draft both render so admins

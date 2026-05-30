@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,4 +55,48 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
             order by e.approvedAt asc, e.id asc
             """)
     List<Enrollment> findRosterByClassId(@Param("classId") Long classId);
+
+    // Admin dashboard: most recent sign-ups across all statuses, joined with
+    // course so the FE table can render course title without N+1 fetches.
+    @EntityGraph(attributePaths = {"requestedCourse"})
+    @Query("""
+            select e from Enrollment e
+            order by e.submittedAt desc
+            """)
+    List<Enrollment> findRecentForDashboard(Pageable pageable);
+
+    // Admin dashboard student avatar stack: most recently approved active
+    // enrollments. Pageable gives us a cheap top-N without a derived method
+    // explosion.
+    @Query("""
+            select e from Enrollment e
+            where e.status = 'active' and e.approvedAt is not null
+            order by e.approvedAt desc
+            """)
+    List<Enrollment> findRecentActive(Pageable pageable);
+
+    // Delta counters: how many active enrollments crossed into active in the
+    // window. Mirrors the FE's "+38" chip semantics.
+    long countByStatusAndApprovedAtAfter(String status, Instant since);
+
+    long countBySubmittedAtAfter(Instant since);
+
+    // Spark-bar source for the courses KPI: bucketed enrollment count per day.
+    // We pull the raw rows in the window and group in Java — small dataset, no
+    // DB-specific date functions needed.
+    @Query("""
+            select e.submittedAt from Enrollment e
+            where e.submittedAt >= :since
+            """)
+    List<Instant> findSubmittedTimestampsSince(@Param("since") Instant since);
+
+    // Pending KPI footer: average seconds a pending row has been waiting. We
+    // compute the delta in JPQL as (now - submittedAt) so the DB does the math
+    // and the service just formats the result. Returns null when no pending.
+    @Query(value = """
+            select coalesce(avg(extract(epoch from (now() - e.submitted_at))), 0)
+            from enrollments e
+            where e.status = 'pending'
+            """, nativeQuery = true)
+    Double avgPendingWaitSeconds();
 }
