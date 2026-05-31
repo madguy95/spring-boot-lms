@@ -170,4 +170,18 @@ public interface ClassRepository extends JpaRepository<ClassEntity, Long> {
             order by c.name asc
             """)
     List<ClassEntity> findSchedulableClasses();
+
+    // Teacher "My classes" view: every published class owned by the teacher,
+    // regardless of derived status (ongoing / upcoming / completed) — the
+    // service derives the FE status and computes per-card progress. Draft /
+    // unpublished / cancelled never belong on a teacher's roster so they're
+    // excluded here. Newest term first.
+    @EntityGraph(attributePaths = {"course", "teacher", "daySchedules"})
+    @Query("""
+            select distinct c from ClassEntity c
+            where c.teacher.id = :teacherId
+              and c.lifecycleStatus = 'published'
+            order by c.startDate desc, c.id desc
+            """)
+    List<ClassEntity> findPublishedByTeacher(@Param("teacherId") Long teacherId);
 }

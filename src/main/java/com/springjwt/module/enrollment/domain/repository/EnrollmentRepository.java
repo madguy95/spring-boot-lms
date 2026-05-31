@@ -56,6 +56,17 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
             """)
     List<Enrollment> findRosterByClassId(@Param("classId") Long classId);
 
+    // Batch roster for the teacher "My classes" avatar stacks — one query across
+    // every class card instead of N findRosterByClassId calls. Ordered so the
+    // service can take the first few per class for the preview. Returns [] when
+    // classIds is empty (callers guard against an empty IN list).
+    @Query("""
+            select e from Enrollment e
+            where e.assignedClass.id in :classIds and e.status = 'active'
+            order by e.assignedClass.id asc, e.approvedAt asc, e.id asc
+            """)
+    List<Enrollment> findRosterByClassIds(@Param("classIds") List<Long> classIds);
+
     // Admin dashboard: most recent sign-ups across all statuses, joined with
     // course so the FE table can render course title without N+1 fetches.
     @EntityGraph(attributePaths = {"requestedCourse"})
