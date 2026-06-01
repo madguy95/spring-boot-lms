@@ -7,6 +7,7 @@ import com.springjwt.module.classroom.domain.entity.ClassEntity;
 import com.springjwt.module.classroom.domain.repository.ClassRepository;
 import com.springjwt.module.classroom.domain.service.ClassDomainService;
 import com.springjwt.module.classroom.domain.service.ClassLifecyclePolicy;
+import com.springjwt.module.classroom.domain.service.SessionGeneratorService;
 import com.springjwt.module.classroom.model.dto.*;
 import com.springjwt.module.classroom.model.request.ClassListRequest;
 import com.springjwt.module.classroom.model.request.CreateClassRequest;
@@ -41,6 +42,7 @@ public class ClassServiceImpl implements ClassService {
     private final ClassDomainService classDomainService;
     private final ClassLifecyclePolicy lifecyclePolicy;
     private final EnrollmentRepository enrollmentRepository;
+    private final SessionGeneratorService sessionGeneratorService;
 
     @Override
     public Page<ClassDto> listClasses(ClassListRequest request) {
@@ -49,7 +51,7 @@ public class ClassServiceImpl implements ClassService {
         String search = normalize(request.getSearch());
         LocalDate today = LocalDate.now();
 
-        Page<ClassEntity> classes = classRepository.search(request.getStatus(), search, today, pageable);
+        Page<ClassEntity> classes = classRepository.search(request.getStatus(), search, today, request.getCourseId(), pageable);
         List<ClassDto> data = classes.stream().map(c -> toDto(c, today)).toList();
         return new PageImpl<>(data, pageable, classes.getTotalElements());
     }
@@ -91,7 +93,9 @@ public class ClassServiceImpl implements ClassService {
 
         replaceDaySchedules(entity, sortedSchedules);
 
-        return toDto(classRepository.save(entity), LocalDate.now());
+        ClassEntity saved = classRepository.save(entity);
+        sessionGeneratorService.generateSessions(saved);
+        return toDto(saved, LocalDate.now());
     }
 
     @Override

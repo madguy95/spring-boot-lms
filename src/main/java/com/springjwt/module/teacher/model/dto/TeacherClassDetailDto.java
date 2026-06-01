@@ -30,4 +30,6 @@ public class TeacherClassDetailDto {
     private String needsReviewSession;
     private String color;            // emerald|sky|amber|violet|rose|slate
     private String currentSessionId; // session code (e.g. 'B6'), "" when none
+    /** Cover image URL inherited from the course; null when the course has none. */
+    private String coverUrl;
 }

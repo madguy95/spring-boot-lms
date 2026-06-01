@@ -167,6 +167,7 @@ public class TeacherClassServiceImpl implements TeacherClassService {
                 .sessionTotal(sessionTotal)
                 .sessionCurrent(computeSessionCurrent(c, feStatus, today, sessionTotal))
                 .status(feStatus)
+                .coverUrl(course == null ? null : course.getCoverUrl())
                 .studentsPreview(buildPreview(roster));
 
         if (STATUS_ENDED.equals(feStatus)) {

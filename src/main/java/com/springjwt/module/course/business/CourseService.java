@@ -30,10 +30,10 @@ public interface CourseService {
     CourseStatsDto getStats();
 
     /**
-     * Public-facing list of newest published courses for the marketing landing page.
+     * Public-facing paginated list of published courses for the marketing catalog.
      * Never includes drafts or unpublished entries.
      */
-    List<PublicCourseDto> listPublicCourses(int limit);
+    Page<PublicCourseDto> listPublicCourses(int page, int size);
 
     /**
      * Public-facing detail for one course. Throws 404 if the course doesn't exist or isn't

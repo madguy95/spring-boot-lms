@@ -190,14 +190,11 @@ public class BlogPostServiceImpl implements BlogPostService {
         List<PublicBlogFeedItemDto> workshops = new ArrayList<>();
         List<PublicBlogFeedItemDto> articles = new ArrayList<>();
 
-        Instant now = Instant.now();
         for (BlogPost post : recent) {
             if (TYPE_WORKSHOP.equals(post.getType()) && post.getClassId() != null) {
                 AttachedClassDto attached = loadAttachedClass(post);
                 if (attached == null) continue;
                 if ("cancelled".equals(attached.getStatus())) continue;
-                // Hide already-started workshops — stale entries hurt conversions.
-                if (attached.getStartsAt() != null && attached.getStartsAt().isBefore(now)) continue;
                 workshops.add(toFeedItem(post, attached, "workshop"));
             } else if (TYPE_ARTICLE.equals(post.getType())) {
                 articles.add(toFeedItem(post, null, "article"));

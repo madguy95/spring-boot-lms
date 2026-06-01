@@ -39,6 +39,7 @@ public interface ClassRepository extends JpaRepository<ClassEntity, Long> {
                    or lower(cast(co.title as string))  like lower(cast(concat('%', :search, '%') as string))
                    or lower(cast(co.code as string))   like lower(cast(concat('%', :search, '%') as string))
                    or lower(cast(concat(t.firstName, ' ', t.lastName) as string)) like lower(cast(concat('%', :search, '%') as string)))
+              and (:courseId is null or co.id = :courseId)
             """,
             countQuery = """
             select count(distinct c.id) from ClassEntity c
@@ -57,10 +58,12 @@ public interface ClassRepository extends JpaRepository<ClassEntity, Long> {
                    or lower(cast(co.title as string))  like lower(cast(concat('%', :search, '%') as string))
                    or lower(cast(co.code as string))   like lower(cast(concat('%', :search, '%') as string))
                    or lower(cast(concat(t.firstName, ' ', t.lastName) as string)) like lower(cast(concat('%', :search, '%') as string)))
+              and (:courseId is null or co.id = :courseId)
             """)
     Page<ClassEntity> search(@Param("displayStatus") String displayStatus,
                              @Param("search") String search,
                              @Param("today") LocalDate today,
+                             @Param("courseId") Long courseId,
                              Pageable pageable);
 
     @EntityGraph(attributePaths = {"course", "teacher", "teacher.user", "daySchedules"})

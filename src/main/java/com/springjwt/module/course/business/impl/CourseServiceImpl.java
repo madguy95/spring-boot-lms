@@ -260,12 +260,12 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<PublicCourseDto> listPublicCourses(int limit) {
-        // Clamp to a sane upper bound so a misbehaving client can't drag down the landing page.
-        int size = Math.max(1, Math.min(limit, 24));
-        PageRequest pageable = PageRequest.of(0, size, Sort.by(Sort.Direction.DESC, "id"));
-        Page<Course> page = courseRepository.search(null, STATUS_PUBLISHED, null, pageable);
-        return page.getContent().stream().map(this::toPublicDto).toList();
+    public Page<PublicCourseDto> listPublicCourses(int page, int size) {
+        int clampedSize = Math.max(1, Math.min(size, 50));
+        PageRequest pageable = PageRequest.of(Math.max(page - 1, 0), clampedSize, Sort.by(Sort.Direction.DESC, "id"));
+        Page<Course> coursePage = courseRepository.search(null, STATUS_PUBLISHED, null, pageable);
+        List<PublicCourseDto> data = coursePage.getContent().stream().map(this::toPublicDto).toList();
+        return new PageImpl<>(data, pageable, coursePage.getTotalElements());
     }
 
     @Override

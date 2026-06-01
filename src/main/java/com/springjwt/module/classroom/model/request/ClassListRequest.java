@@ -29,6 +29,8 @@ public class ClassListRequest {
 
     private String search;
 
+    private Long courseId;
+
     @Builder.Default
     private String sortBy = "createdAt";
 

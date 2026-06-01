@@ -120,6 +120,7 @@ public class TeacherClassDetailServiceImpl implements TeacherClassDetailService 
                 .needsReviewSession(needsReviewSession)
                 .color(pickColor(klass.getId()))
                 .currentSessionId(current == null ? "" : current.getCode())
+                .coverUrl(course == null ? null : course.getCoverUrl())
                 .build();
     }
 

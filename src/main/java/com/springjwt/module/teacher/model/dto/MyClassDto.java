@@ -45,4 +45,6 @@ public class MyClassDto {
     /** Days until start — only set for upcoming classes. */
     private Integer daysRemaining;
     private List<MyClassStudentPreviewDto> studentsPreview;
+    /** Cover image URL inherited from the course; null when the course has none. */
+    private String coverUrl;
 }

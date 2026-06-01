@@ -109,15 +109,17 @@ public class CourseController {
     }
 
     /**
-     * Public, unauthenticated list of newest published courses for the marketing landing page.
+     * Public, unauthenticated paginated course catalog for the marketing site.
      * Whitelisted in {@link com.springjwt.core.security.WebSecurityConfig} under {@code /api/public/**}.
      */
     @GetMapping("/public/courses")
-    @Operation(summary = "Public landing-page courses (no auth)",
-            description = "Returns newest published courses for the marketing site. Defaults to 4 items.")
-    public ResponseEntity<ApiResult<List<PublicCourseDto>>> listPublicCourses(
-            @RequestParam(value = "limit", defaultValue = "4") int limit) {
-        return ResponseFactory.success(courseService.listPublicCourses(limit));
+    @Operation(summary = "Public course catalog with pagination (no auth)",
+            description = "Returns published courses with server-side pagination for SEO. page is 1-based.")
+    public ResponseEntity<PagedResult<PublicCourseDto>> listPublicCourses(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "12") int size) {
+        org.springframework.data.domain.Page<PublicCourseDto> result = courseService.listPublicCourses(page, size);
+        return ResponseFactory.pagedResponse(result.getContent(), page, size, result.getTotalElements());
     }
 
     @GetMapping("/public/courses/{id}")
