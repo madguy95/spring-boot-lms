@@ -1,5 +1,6 @@
 package com.springjwt.core.security;
 
+import com.springjwt.core.config.CorsProperties;
 import com.springjwt.core.security.jwt.AuthEntryPointJwt;
 import com.springjwt.core.security.jwt.AuthTokenFilter;
 import com.springjwt.module.auth.business.UserDetailsServiceImpl;
@@ -36,6 +37,8 @@ public class WebSecurityConfig {
 
     private final AuthEntryPointJwt unauthorizedHandler;
 
+    private final CorsProperties corsProperties;
+
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
         return new AuthTokenFilter();
@@ -64,10 +67,29 @@ public class WebSecurityConfig {
     public UrlBasedCorsConfigurationSource corsFilter() {
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-        config.setAllowedOriginPatterns(Collections.singletonList("*"));
-        config.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "responseType", "Authorization"));
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "OPTIONS", "DELETE", "PATCH"));
+
+        // Load CORS settings from application.yml
+        config.setAllowCredentials(corsProperties.getAllowCredentials());
+
+        // Set allowed origins from configuration (or use "*" if empty)
+        if (corsProperties.getAllowedOrigins() != null && !corsProperties.getAllowedOrigins().isEmpty()) {
+            config.setAllowedOriginPatterns(corsProperties.getAllowedOrigins());
+        } else {
+            config.setAllowedOriginPatterns(Collections.singletonList("*"));
+        }
+
+        // Parse and set allowed methods
+        config.setAllowedMethods(Arrays.asList(corsProperties.getAllowedMethods().split(",")));
+
+        // Parse and set allowed headers
+        config.setAllowedHeaders(Arrays.asList(corsProperties.getAllowedHeaders().split(",")));
+
+        // Parse and set exposed headers
+        config.setExposedHeaders(Arrays.asList(corsProperties.getExposedHeaders().split(",")));
+
+        // Set max age for preflight requests
+        config.setMaxAge(corsProperties.getMaxAge());
+
         source.registerCorsConfiguration("/**", config);
         return source;
     }
