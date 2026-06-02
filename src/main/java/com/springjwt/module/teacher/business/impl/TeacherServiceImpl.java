@@ -186,6 +186,37 @@ public class TeacherServiceImpl implements TeacherService {
                 .toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<PublicTeacherDto> getPublicTeachers() {
+        Sort sort = Sort.by(Sort.Direction.ASC, "firstName", "lastName");
+        PageRequest pageable = PageRequest.of(0, 200, sort);
+        return teacherRepository.search(STATUS_ACTIVE, null, pageable)
+                .getContent()
+                .stream()
+                .map(this::toPublicTeacherDto)
+                .toList();
+    }
+
+    private PublicTeacherDto toPublicTeacherDto(Teacher teacher) {
+        String firstName = Optional.ofNullable(teacher.getFirstName()).orElse("").trim();
+        String lastName = Optional.ofNullable(teacher.getLastName()).orElse("").trim();
+        List<String> subjects = teacher.getTeacherSubjects().stream()
+                .sorted(Comparator.comparing(ts -> !ts.isPrimary()))
+                .map(ts -> ts.getSubject().getName())
+                .toList();
+        return PublicTeacherDto.builder()
+                .id(teacher.getId())
+                .fullName((firstName + " " + lastName).trim())
+                .initials(buildInitials(firstName, lastName))
+                .avatarUrl(teacher.getAvatarUrl())
+                .subjects(subjects)
+                .bio(teacher.getBio())
+                .studentCount(0)
+                .rating(teacher.getRating())
+                .build();
+    }
+
     private Set<TeacherSubject> buildTeacherSubjects(Teacher teacher, List<Subject> subjects, Long primarySubjectId) {
         Set<TeacherSubject> links = new HashSet<>();
         for (Subject subject : subjects) {

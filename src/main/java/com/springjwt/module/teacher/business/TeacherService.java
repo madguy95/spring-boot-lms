@@ -25,5 +25,7 @@ public interface TeacherService {
     List<TeacherOptionDto> getTeacherOptions(String status);
 
     List<SubjectDto> getSubjects();
+
+    List<PublicTeacherDto> getPublicTeachers();
 }
 
