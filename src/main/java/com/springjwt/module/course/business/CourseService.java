@@ -32,8 +32,11 @@ public interface CourseService {
     /**
      * Public-facing paginated list of published courses for the marketing catalog.
      * Never includes drafts or unpublished entries.
+     * @param search  optional keyword filter (title / code / tagline)
+     * @param tool    optional tool code filter
+     * @param sort    optional sort hint: "recent" | "price-asc" | "rating" (default: id desc)
      */
-    Page<PublicCourseDto> listPublicCourses(int page, int size);
+    Page<PublicCourseDto> listPublicCourses(int page, int size, String search, String tool, String sort);
 
     /**
      * Public-facing detail for one course. Throws 404 if the course doesn't exist or isn't

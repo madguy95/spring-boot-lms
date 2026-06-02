@@ -114,11 +114,16 @@ public class CourseController {
      */
     @GetMapping("/public/courses")
     @Operation(summary = "Public course catalog with pagination (no auth)",
-            description = "Returns published courses with server-side pagination for SEO. page is 1-based.")
+            description = "Returns published courses with server-side pagination for SEO. page is 1-based. "
+                    + "Supported sort values: recent, price-asc, rating (default: newest by id).")
     public ResponseEntity<PagedResult<PublicCourseDto>> listPublicCourses(
             @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "size", defaultValue = "12") int size) {
-        org.springframework.data.domain.Page<PublicCourseDto> result = courseService.listPublicCourses(page, size);
+            @RequestParam(value = "size", defaultValue = "12") int size,
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "tool", required = false) String tool,
+            @RequestParam(value = "sort", required = false) String sort) {
+        org.springframework.data.domain.Page<PublicCourseDto> result =
+                courseService.listPublicCourses(page, size, search, tool, sort);
         return ResponseFactory.pagedResponse(result.getContent(), page, size, result.getTotalElements());
     }
 

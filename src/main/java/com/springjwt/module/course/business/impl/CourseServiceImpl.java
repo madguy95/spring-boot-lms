@@ -260,12 +260,25 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<PublicCourseDto> listPublicCourses(int page, int size) {
+    public Page<PublicCourseDto> listPublicCourses(int page, int size, String search, String tool, String sort) {
         int clampedSize = Math.max(1, Math.min(size, 50));
-        PageRequest pageable = PageRequest.of(Math.max(page - 1, 0), clampedSize, Sort.by(Sort.Direction.DESC, "id"));
-        Page<Course> coursePage = courseRepository.search(null, STATUS_PUBLISHED, null, pageable);
+        Sort pageSort = buildPublicSort(sort);
+        PageRequest pageable = PageRequest.of(Math.max(page - 1, 0), clampedSize, pageSort);
+        String normalizedSearch = normalize(search);
+        String normalizedTool = (tool == null || tool.isBlank()) ? null : tool.trim();
+        Page<Course> coursePage = courseRepository.search(normalizedTool, STATUS_PUBLISHED, normalizedSearch, pageable);
         List<PublicCourseDto> data = coursePage.getContent().stream().map(this::toPublicDto).toList();
         return new PageImpl<>(data, pageable, coursePage.getTotalElements());
+    }
+
+    private Sort buildPublicSort(String sort) {
+        if (sort == null) return Sort.by(Sort.Direction.DESC, "id");
+        return switch (sort) {
+            case "recent" -> Sort.by(Sort.Direction.DESC, "createdAt");
+            case "price-asc" -> Sort.by(Sort.Direction.ASC, "tuitionAmount");
+            case "rating" -> Sort.by(Sort.Direction.DESC, "id");
+            default -> Sort.by(Sort.Direction.DESC, "id");
+        };
     }
 
     @Override

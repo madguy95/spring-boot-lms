@@ -22,7 +22,7 @@ public class MasterDataController {
 
     private final MasterDataService masterDataService;
 
-    @GetMapping("/master-data")
+    @GetMapping("/public/master-data")
     @Operation(summary = "List master data items by type")
     public ResponseEntity<ApiResult<List<MasterDataDto>>> listByType(@RequestParam String type) {
         return ResponseFactory.success(masterDataService.listByType(type));
