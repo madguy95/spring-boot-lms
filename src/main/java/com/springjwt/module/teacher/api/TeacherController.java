@@ -110,4 +110,12 @@ public class TeacherController {
     public ResponseEntity<ApiResult<List<SubjectDto>>> getSubjects() {
         return ResponseFactory.success(teacherService.getSubjects());
     }
+
+    @PatchMapping("/teachers/{id}/reset-password")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Reset teacher password to default")
+    public ResponseEntity<ApiResult<String>> resetTeacherPassword(@PathVariable Long id) {
+        String tempPassword = teacherService.resetPassword(id);
+        return ResponseFactory.success(tempPassword);
+    }
 }

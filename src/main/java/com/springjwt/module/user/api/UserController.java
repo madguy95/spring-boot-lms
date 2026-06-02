@@ -2,6 +2,7 @@ package com.springjwt.module.user.api;
 
 import com.springjwt.common.base.response.ResponseFactory;
 import com.springjwt.module.user.business.UserService;
+import com.springjwt.module.user.model.request.ChangePasswordRequest;
 import com.springjwt.module.user.model.request.SignupRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -11,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,10 +34,20 @@ public class UserController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
-        // Create new user's account
         userService.registerUser(signUpRequest);
-
         return ResponseFactory.success("User registered successfully!");
+    }
+
+    @PutMapping("/change-password")
+    @Operation(summary = "Change password", description = "Change the current user's password. Requires a valid current password.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Password changed successfully"),
+            @ApiResponse(responseCode = "400", description = "Incorrect current password or passwords do not match"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        userService.changePassword(request);
+        return ResponseFactory.success("Password changed successfully!");
     }
 }
 

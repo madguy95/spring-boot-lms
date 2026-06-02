@@ -27,5 +27,7 @@ public interface TeacherService {
     List<SubjectDto> getSubjects();
 
     List<PublicTeacherDto> getPublicTeachers();
+
+    String resetPassword(Long id);
 }
 

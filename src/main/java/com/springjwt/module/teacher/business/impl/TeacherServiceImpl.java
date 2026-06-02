@@ -314,6 +314,16 @@ public class TeacherServiceImpl implements TeacherService {
         return Sort.by(direction, mappedSortField);
     }
 
+    @Override
+    @Transactional
+    public String resetPassword(Long id) {
+        Teacher teacher = teacherDomainService.getTeacherById(id);
+        User user = teacher.getUser();
+        user.setPassword(passwordEncoder.encode(tempPassword));
+        userRepository.save(user);
+        return tempPassword;
+    }
+
     private String normalizeSearch(String search) {
         if (search == null) {
             return null;

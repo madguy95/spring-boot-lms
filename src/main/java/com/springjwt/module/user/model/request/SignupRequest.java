@@ -38,7 +38,7 @@ public class SignupRequest {
     private Set<String> roles;
 
     @NotBlank(message = "validation.password.required")
-    @Size(min = 6, max = 40, message = "validation.password.size")
+    @Size(min = 4, max = 40, message = "validation.password.size")
     @Schema(description = "Password (6-40 characters)", example = "password123")
     private String password;
 }
