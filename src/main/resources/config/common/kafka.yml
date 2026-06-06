@@ -210,10 +210,6 @@ kafka:
   # ===== Health Check Configuration =====
   # Monitoring Kafka cluster availability via Spring Boot Actuator
   health:
-    # enabled: Enable Kafka health check endpoint
-    # true = Create KafkaAdmin and KafkaHealthIndicator beans
-    enabled: true
-
     # timeout: Timeout for health check in milliseconds
     # 5000ms = 5 seconds
     # Prevents health check from hanging

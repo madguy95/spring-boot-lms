@@ -46,7 +46,7 @@ EXPOSE 8080
 #   UseContainerSupport: respect cgroup memory limits set by Render/K8s
 #   MaxRAMPercentage:    leave headroom for off-heap allocations (Netty buffers, metaspace, ...)
 #   ExitOnOutOfMemoryError: fail fast so the orchestrator restarts a wedged JVM
-ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError"
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=55.0 -XX:MaxMetaspaceSize=128m -XX:ReservedCodeCacheSize=64m -Xss256k -XX:+ExitOnOutOfMemoryError"
 
 # `--server.port=$PORT` overrides whatever the profile yml says, so Render's port routing works
 # without us having to wire SERVER_PORT separately. exec replaces shell so signals (SIGTERM) reach

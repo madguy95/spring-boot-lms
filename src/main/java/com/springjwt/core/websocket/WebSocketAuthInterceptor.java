@@ -2,6 +2,7 @@ package com.springjwt.core.websocket;
 
 import com.springjwt.core.security.jwt.JwtUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -16,6 +17,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 
 @Configuration
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "app.websocket.enabled", havingValue = "true", matchIfMissing = false)
 public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
     private final JwtUtils jwtUtils;

@@ -7,6 +7,14 @@ spring:
   application:
     name: ${APP_NAME:Spring Boot JWT API}  # Application name
 
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+      - org.springframework.boot.autoconfigure.websocket.servlet.WebSocketServletAutoConfiguration
+      - org.springframework.boot.autoconfigure.websocket.servlet.WebSocketMessagingAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
   # Active Profile - Change this to switch environments
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}  # Active Spring profile (default: dev)
@@ -85,6 +93,8 @@ app:
     enabled: ${KAFKA_ENABLED:false}  # Enable Kafka integration (true/false)
   quartz:
     enabled: ${QUARTZ_ENABLED:false}  # Enable Quartz scheduler (true/false)
+  websocket:
+    enabled: ${WEBSOCKET_ENABLED:false}  # Enable WebSocket/STOMP (true/false)
 
 # ========================================
 # SPRING COMMON SETTINGS
@@ -119,6 +129,11 @@ management:
   endpoint:
     health:
       show-details: ${ACTUATOR_HEALTH_DETAILS:when-authorized}  # Health endpoint detail level
+  health:
+    redis:
+      enabled: ${REDIS_ENABLED:false}  # Disable Redis health check when Redis is not in use
+    kafka:
+      enabled: ${KAFKA_ENABLED:false}  # Disable Kafka health check when Kafka is not in use
   info:
     env:
       enabled: true  # Show environment info in actuator /info

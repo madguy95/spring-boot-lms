@@ -22,8 +22,11 @@ public class QuartzConfig {
 
     private final ApplicationContext applicationContext;
 
-    @Value("${app.quartz.auto-startup:true}")
-    private boolean autoStartup;
+    @Value("${app.quartz.clustered:false}")
+    private boolean clustered;
+
+    @Value("${app.quartz.cluster-checkin-interval:20000}")
+    private long clusterCheckinInterval;
 
     @Bean
     public SpringJobFactory jobFactory() {
@@ -42,15 +45,10 @@ public class QuartzConfig {
         factory.setJobFactory(jobFactory);
         factory.setQuartzProperties(quartzProperties());
         factory.setWaitForJobsToCompleteOnShutdown(true);
-        factory.setAutoStartup(autoStartup);
-        factory.setStartupDelay(10); // Wait 10 seconds before starting
-        factory.setOverwriteExistingJobs(false); // Don't overwrite existing jobs
+        factory.setStartupDelay(10);
+        factory.setOverwriteExistingJobs(false);
 
-        if (autoStartup) {
-            log.info("Quartz Scheduler is ENABLED and will start automatically");
-        } else {
-            log.warn("Quartz Scheduler is ENABLED but auto-startup is DISABLED - manual start required");
-        }
+        log.info("Quartz Scheduler is ENABLED and will start automatically (clustered={})", clustered);
 
         return factory;
     }
@@ -58,22 +56,16 @@ public class QuartzConfig {
     private Properties quartzProperties() {
         Properties properties = new Properties();
 
-        // Scheduler properties
         properties.setProperty("org.quartz.scheduler.instanceName", "SpringScheduler");
         properties.setProperty("org.quartz.scheduler.instanceId", "AUTO");
-
-        // Virtual Thread Pool
         properties.setProperty("org.quartz.threadPool.class", "com.springjwt.core.quartz.QuartzThreadPool");
-
-        // JobStore properties
         properties.setProperty("org.quartz.jobStore.class", "org.springframework.scheduling.quartz.LocalDataSourceJobStore");
         properties.setProperty("org.quartz.jobStore.driverDelegateClass", "org.quartz.impl.jdbcjobstore.PostgreSQLDelegate");
         properties.setProperty("org.quartz.jobStore.tablePrefix", "QRTZ_");
-        properties.setProperty("org.quartz.jobStore.isClustered", "true");
-        properties.setProperty("org.quartz.jobStore.clusterCheckinInterval", "20000");
+        properties.setProperty("org.quartz.jobStore.isClustered", String.valueOf(clustered));
+        properties.setProperty("org.quartz.jobStore.clusterCheckinInterval", String.valueOf(clusterCheckinInterval));
         properties.setProperty("org.quartz.jobStore.useProperties", "false");
 
-        log.info("Quartz properties configured successfully");
         return properties;
     }
 }

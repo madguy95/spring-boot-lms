@@ -16,9 +16,8 @@ spring:
           max-wait: ${REDIS_POOL_MAX_WAIT:3000ms}  # Maximum wait time for a connection (can be overridden by REDIS_POOL_MAX_WAIT env variable)
         shutdown-timeout: ${REDIS_SHUTDOWN_TIMEOUT:100ms}  # Timeout for shutting down Lettuce client (can be overridden by REDIS_SHUTDOWN_TIMEOUT env variable)
 
-  # Cache Configuration
+  # Cache Configuration — type and per-env settings in env-specific redis.yml
   cache:
-    type: redis  # Use Redis for Spring cache
     redis:
-      cache-null-values: false  # Do not cache null values
-      use-key-prefix: true  # Use key prefix for cache entries
+      cache-null-values: false
+      use-key-prefix: true

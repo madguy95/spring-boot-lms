@@ -5,7 +5,7 @@ import com.springjwt.common.base.response.PagedResult;
 import com.springjwt.module.user.domain.entity.User;
 import com.springjwt.sample.model.request.RequestDTO;
 import lombok.extern.slf4j.Slf4j;
-import net.datafaker.Faker;
+//import net.datafaker.Faker;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -26,17 +26,17 @@ public class TestController {
 
     @GetMapping("/getList")
     public ResponseEntity<PagedResult<User>> getListData() {
-        Faker faker = new Faker(Locale.of("en-US"));
+//        Faker faker = new Faker(Locale.of("en-US"));
         // List to store user data
         List<User> userList = new ArrayList<>();
 
         // Create 10 fake User objects
         for (int i = 0; i < 10; i++) {
             User user = new User();
-            user.setId(faker.number().randomNumber());
-            user.setUsername(faker.name().name());
-            user.setPassword(faker.internet().password());
-            user.setEmail(faker.internet().emailAddress());
+//            user.setId(faker.number().randomNumber());
+//            user.setUsername(faker.name().name());
+//            user.setPassword(faker.internet().password());
+//            user.setEmail(faker.internet().emailAddress());
             userList.add(user);
         }
         return ResponseFactory.pagedResponse(userList, 1, 10, userList.size());

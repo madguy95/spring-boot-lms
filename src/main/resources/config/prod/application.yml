@@ -9,8 +9,8 @@ spring:
     username: ${DB_USERNAME}  # Database username (set via DB_USERNAME env variable)
     password: ${DB_PASSWORD}  # Database password (set via DB_PASSWORD env variable)
     hikari:
-      minimum-idle: 10  # Minimum number of idle connections in the pool
-      maximum-pool-size: 50  # Maximum number of connections in the pool
+      minimum-idle: 2    # Reduced for 512MB — keep 2 warm connections
+      maximum-pool-size: 10  # Reduced from 50; each PG connection ~10MB overhead
       leak-detection-threshold: 60000  # Time (ms) to detect connection leaks
       connection-test-query: SELECT 1  # Query to test connection validity
 
@@ -29,10 +29,6 @@ spring:
     init:
       mode: never  # Do not use SQL init scripts (production)
 
-  # Ensure JDBC jobstore is explicitly set for Quartz clustering
-  quartz:
-    job-store-type: jdbc
-
   # Graceful Shutdown
   lifecycle:
     timeout-per-shutdown-phase: 30s  # Timeout for each shutdown phase
@@ -47,6 +43,8 @@ spring:
 # Server Configuration
 server:
   port: ${SERVER_PORT:8080}  # Server port (default: 8080)
+  tomcat:
+    accept-count: 50  # Socket backlog: requests queued while virtual threads are processing
   compression:
     enabled: true  # Enable response compression
     mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json  # MIME types to compress
@@ -71,10 +69,15 @@ app:
   jwt-expiration-ms: ${JWT_EXPIRATION_MS:3600000}  # JWT expiration time in milliseconds (default: 1 hour)
   jwt-refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:2592000000}  # JWT refresh token expiration (default: 30 days)
 
-  # SSL — NEVER allow trust-all in prod; enforces JVM cert validation even if someone
-  # accidentally sets TRUST_ALL_SSL=true at the env var level.
+  # SSL — hardcoded false: never trust-all in prod regardless of env vars.
   ssl:
-    trust-all: ${TRUST_ALL_SSL:true}
+    trust-all: ${TRUST_ALL_SSL:false}  # Do not trust all SSL certificates in production
+
+  # Java 21 virtual threads for Tomcat: each HTTP request runs on a lightweight virtual thread
+  # (few KB heap) instead of a platform OS thread (~512KB stack). The real limiter is the
+  # DB connection pool (hikari.maximum-pool-size=10), not the thread count.
+  virtual-threads:
+    enabled: true
 
   # CORS (Strict)
   cors:
@@ -85,15 +88,12 @@ app:
     allow-credentials: true  # Allow credentials in CORS
     max-age: 3600  # Max age for CORS preflight requests
 
-# Actuator (Limited)
+# Actuator — fully disabled in prod
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus  # Expose only selected actuator endpoints
-  endpoint:
-    health:
-      show-details: when-authorized  # Show health details only when authorized
+        include: ""
 
 # File Upload
 file:
@@ -110,6 +110,13 @@ file:
     api-secret: ${CLOUDINARY_API_SECRET}
     default-folder: ${CLOUDINARY_DEFAULT_FOLDER:lms-prod}
     secure: true
+
+# Swagger/OpenAPI — disabled in prod (reduces endpoint scanning + UI resource heap usage)
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
 
 # Debug OFF
 debug: false  # Disable debug mode

@@ -21,8 +21,9 @@ spring:
         shutdown-timeout: 100ms  # Timeout for shutting down Lettuce client
       timeout: 60000ms  # Redis connection timeout
   cache:
+    type: redis
     redis:
-      time-to-live: 1800000  # 30 minutes - cache entry expiration time in milliseconds
-      key-prefix: "staging:spring-jwt:"  # Prefix for all Redis cache keys in staging
-      cache-null-values: false  # Do not cache null values
-      use-key-prefix: true  # Use key prefix for cache entries
+      time-to-live: 1800000
+      key-prefix: "staging:spring-jwt:"
+      cache-null-values: false
+      use-key-prefix: true

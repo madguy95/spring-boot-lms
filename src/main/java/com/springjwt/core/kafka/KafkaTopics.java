@@ -24,7 +24,7 @@ import org.springframework.kafka.config.TopicBuilder;
  */
 @Slf4j
 @Configuration
-@ConditionalOnProperty(name = "app.kafka.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(name = "app.kafka.enabled", havingValue = "true", matchIfMissing = false)
 public class KafkaTopics {
 
     // ===== Topic Names =====

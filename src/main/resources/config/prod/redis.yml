@@ -17,8 +17,9 @@ spring:
           max-idle: 10  # Maximum number of idle connections in the pool
           min-idle: 5  # Minimum number of idle connections in the pool
   cache:
+    type: redis
     redis:
-      time-to-live: 3600000  # 1 hour - cache entry expiration time in milliseconds
-      key-prefix: "prod:spring-jwt:"  # Prefix for all Redis cache keys in production
-      cache-null-values: false  # Do not cache null values
-      use-key-prefix: true  # Use key prefix for cache entries
+      time-to-live: 3600000
+      key-prefix: "prod:spring-jwt:"
+      cache-null-values: false
+      use-key-prefix: true

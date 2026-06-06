@@ -2,15 +2,7 @@
 # PROD - QUARTZ CONFIGURATION
 # ========================================
 
-spring:
+app:
   quartz:
-    jdbc:
-      initialize-schema: never  # Do not initialize Quartz DB schema on startup (production uses pre-existing schema)
-    properties:
-      org:
-        quartz:
-          jobStore:
-            isClustered: true  # Enable clustering for distributed job execution
-            clusterCheckinInterval: 20000  # Interval (ms) for cluster node check-in
-          threadPool:
-            threadCount: 20  # Number of threads for Quartz job execution in production
+    clustered: true
+    cluster-checkin-interval: 20000

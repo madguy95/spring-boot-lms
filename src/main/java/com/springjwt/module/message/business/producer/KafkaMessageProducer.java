@@ -25,7 +25,7 @@ import java.util.concurrent.CompletableFuture;
  */
 @Slf4j
 @Service
-@ConditionalOnProperty(name = "app.kafka.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(name = "app.kafka.enabled", havingValue = "true", matchIfMissing = false)
 public class KafkaMessageProducer {
 
     // Non-transactional template (default) - for most use cases

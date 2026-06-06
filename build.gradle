@@ -53,8 +53,7 @@ dependencies {
     // PostgreSQL JDBC Driver
     runtimeOnly 'org.postgresql:postgresql:42.7.11'
 
-    // Oracle (if needed)
-    runtimeOnly 'com.oracle.database.jdbc:ojdbc11:23.6.0.24.10'  // Latest
+    // Oracle driver intentionally removed — project uses PostgreSQL only
 
     // ===== JWT (JJWT) =====
     implementation 'io.jsonwebtoken:jjwt-api:0.12.6'  // Latest stable
@@ -73,7 +72,7 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.36'
 
     // ===== Test Data =====
-    implementation 'net.datafaker:datafaker:2.4.2'  // Replacement for javafaker
+    testImplementation 'net.datafaker:datafaker:2.4.2'  // Replacement for javafaker
 
     // ===== DevTools =====
     developmentOnly 'org.springframework.boot:spring-boot-devtools'

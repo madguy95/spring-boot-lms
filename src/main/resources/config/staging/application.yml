@@ -9,8 +9,8 @@ spring:
     username: ${DB_USERNAME}  # Database username for staging
     password: ${DB_PASSWORD}  # Database password for staging
     hikari:
-      minimum-idle: 5  # Minimum number of idle connections in the pool
-      maximum-pool-size: 30  # Maximum number of connections in the pool
+      minimum-idle: 2   # Keep 2 warm connections
+      maximum-pool-size: 15  # Reduced from 30 for lower memory footprint
       connection-test-query: SELECT 1  # Query to test connection validity
 
   # ===== Flyway Configuration (Staging-specific overrides) =====
@@ -28,10 +28,6 @@ spring:
     init:
       mode: never  # Disable SQL init scripts, use Flyway instead
 
-  # Ensure JDBC jobstore is explicitly set for Quartz clustering
-  quartz:
-    job-store-type: jdbc
-
   # Multipart limits — match prod so staging exercises the same upload paths (intro video up to 200MB).
   servlet:
     multipart:
@@ -41,6 +37,8 @@ spring:
 # Server Configuration
 server:
   port: ${SERVER_PORT:8080}  # Server port (default: 8080)
+  tomcat:
+    accept-count: 100
   compression:
     enabled: true  # Enable response compression
     mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json  # MIME types to compress
